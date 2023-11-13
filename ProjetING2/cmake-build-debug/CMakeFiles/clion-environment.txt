@@ -1,4 +1,4 @@
 ToolSet: w64 6.0 (local)@C:\Users\romeo\MinGW
 Options: 
 
-Options:-DCMAKE_MAKE_PROGRAM=C:/Users/romeo/OneDrive/Bureau/programation/CLion 2022.2.3/bin/ninja/win/ninja.exe
+Options:
