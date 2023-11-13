@@ -51,7 +51,7 @@ int main() {
         operations[op1].exclusion[operations[op1].nombreExclusions++] = op2;
         operations[op2].exclusion[operations[op2].nombreExclusions++] = op1;
     }
-
+//osdvjjfsj
     fclose(fichier);
 
     // Répartition des opérations dans les stations en respectant les contraintes d'exclusion
