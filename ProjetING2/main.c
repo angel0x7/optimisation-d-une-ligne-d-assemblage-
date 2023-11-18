@@ -5,9 +5,9 @@
 #define MAX_FILENAME_LENGTH 100
 
 typedef struct Operation {
-    int numero;
-    float tempsExecution;
-    int station;
+    int numero; // Numéro de l'opération
+    float tempsExecution; // Temps que mets l'opération à s'éffectuer
+    int station; // Numéro de la station où se situe l'opération
     int* exclusion; // Tableau d'exclusion
     int nombreExclusions; // Nombre d'éléments dans le tableau d'exclusion
     int* precedences; // Tableau des opérations qui doivent précéder celle-ci
@@ -15,15 +15,17 @@ typedef struct Operation {
 } Operation;
 
 typedef struct Station {
-    int numero;
-    Operation* operations;
-    int nombreOperations;
+    int numero; // Numéro de la station
+    Operation* operations; // Tableau de structure contenant les opérations
+    int nombreOperations; // Nombre d'opérations dans la station
     float tempsTotal; // Temps total des opérations dans la station
     float tempsCycle; // Temps de cycle de la station
 } Station;
 
 void afficherRepartition(Station* stations, int nombreStations) {
-    printf("Répartition des opérations dans les stations :\n");
+    printf("\n\n--------------------------------------------------------------------------------------\n\n");
+
+    printf("Repartition des operations dans les stations :\n");
     for (int i = 0; i < nombreStations; ++i) {
         printf("Station %d :", stations[i].numero);
         for (int j = 0; j < stations[i].nombreOperations; ++j) {
@@ -31,46 +33,72 @@ void afficherRepartition(Station* stations, int nombreStations) {
         }
         printf("\n");
     }
+    printf("\n--------------------------------------------------------------------------------------\n\n");
 }
 
-int main() {
-
-    /*
-    char filenameExclusions[MAX_FILENAME_LENGTH];
-    char filenamePrecedences[MAX_FILENAME_LENGTH];
-    char filenameOperations[MAX_FILENAME_LENGTH];
-    char filenameTempsCycle[MAX_FILENAME_LENGTH];
-
-    printf("Entrez le nom du fichier d'exclusions : ");
-    scanf("%s", filenameExclusions);
-    printf("Entrez le nom du fichier de precedences : ");
-    scanf("%s", filenamePrecedences);
-    printf("Entrez le nom du fichier d'operation : ");
-    scanf("%s", filenameOperations);
-    printf("Entrez le nom du fichier de temps de cycle : ");
-    scanf("%s", filenameTempsCycle);
-*/
-
-    FILE* fichierExclusions = fopen("../exclusions.txt", "r");
-    FILE* fichierPrecedences = fopen("../precedences.txt", "r");
-    FILE* fichierOperations = fopen("../operations.txt", "r");
-    FILE* fichierTempsCycle = fopen("../temps_cycle.txt", "r");
-
-    if (fichierExclusions == NULL || fichierPrecedences == NULL || fichierOperations == NULL || fichierTempsCycle == NULL) {
-        printf("Erreur de lecture des fichiers\n");
-        return 1;
-    }
-
+Operation* InitialisationOperation(){
     // Initialisation des opérations
     Operation* operations = malloc(N * sizeof(Operation));
+
+    // Vérifiez que l'allocation de mémoire a réussi
+    if (operations == NULL) {
+        printf("Erreur lors de l'allocation des operation\n");
+        return NULL;
+    }
+
     for (int i = 1; i < N; ++i) {
         operations[i].numero = i;
         operations[i].tempsExecution = 0;
         operations[i].station = 0;  // Initialisation à 0
         operations[i].exclusion = malloc(N * sizeof(int)); // Initialisation du tableau d'exclusion
+        // Vérifiez que l'allocation de mémoire a réussi
+        if (operations[i].exclusion == NULL) {
+            printf("Erreur lors de l'allocation de l'exclusion de l'operation %d\n", i);
+            return NULL;
+        }
         operations[i].nombreExclusions = 0; // Initialisation du nombre d'exclusions
         operations[i].precedences = malloc(N * sizeof(int)); // Initialisation du tableau des précédences
+        // Vérifiez que l'allocation de mémoire a réussi
+        if (operations[i].exclusion == NULL) {
+            printf("Erreur lors de l'allocation de la precedence de l'operation %d\n", i);
+            return NULL;
+        }
         operations[i].nombrePrecedences = 0; // Initialisation du nombre de précédences
+    }
+    return operations;
+}
+
+float LectureDesFichiers(Operation* operations){
+
+    char filenameExclusions[MAX_FILENAME_LENGTH];
+    char filenamePrecedences[MAX_FILENAME_LENGTH];
+    char filenameOperations[MAX_FILENAME_LENGTH];
+    char filenameTempsCycle[MAX_FILENAME_LENGTH];
+
+    printf("Entrez le nom du fichier d'exclusions :");
+    scanf("%s", filenameExclusions);
+    printf("\nEntrez le nom du fichier de precedences :");
+    scanf("%s", filenamePrecedences);
+    printf("\nEntrez le nom du fichier d'operation :");
+    scanf("%s", filenameOperations);
+    printf("\nEntrez le nom du fichier de temps de cycle :");
+    scanf("%s", filenameTempsCycle);
+
+    FILE* fichierExclusions = fopen("../exclusions.txt", "r");
+    //FILE* fichierExclusions = fopen(filenameExclusions, "r");
+
+    FILE* fichierPrecedences = fopen("../precedences.txt", "r");
+    //FILE* fichierExclusions = fopen(filenamePrecedences, "r");
+
+    FILE* fichierOperations = fopen("../operations.txt", "r");
+    //FILE* fichierExclusions = fopen(filenameOperations, "r");
+
+    FILE* fichierTempsCycle = fopen("../temps_cycle.txt", "r");
+    //FILE* fichierExclusions = fopen(filenameTempsCycle, "r");
+
+    if (fichierExclusions == NULL || fichierPrecedences == NULL || fichierOperations == NULL || fichierTempsCycle == NULL) {
+        printf("Erreur de lecture des fichiers\n");
+        exit(1);
     }
 
     // Lecture des exclusions à partir du fichier
@@ -94,11 +122,20 @@ int main() {
     float T0; // Temps de cycle
     fscanf(fichierTempsCycle, "%fl", &T0);
 
+
     fclose(fichierExclusions);
     fclose(fichierPrecedences);
     fclose(fichierOperations);
     fclose(fichierTempsCycle);
 
+    return T0;
+}
+
+int main() {
+
+    Operation *operations = InitialisationOperation();
+
+    float T0 = LectureDesFichiers(operations);
 
     // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
     Station* stations = malloc(N * sizeof(Station));
@@ -174,6 +211,12 @@ int main() {
         free(operations[i].exclusion);
         free(operations[i].precedences);
     }
+    free(operations);
+
+    for (int i = 0; i < nombreStations; ++i) {
+        free(stations[i].operations);
+    }
+    free(stations);
 
     return 0;
 }
