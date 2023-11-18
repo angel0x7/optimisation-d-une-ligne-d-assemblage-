@@ -306,11 +306,28 @@ void afficherRepartition(Station* stations, int nombreStations) {
 
 int main() {
 
+    /*
+    char filenameExclusions[MAX_FILENAME_LENGTH];
+    char filenamePrecedences[MAX_FILENAME_LENGTH];
+    char filenameOperations[MAX_FILENAME_LENGTH];
+    char filenameTempsCycle[MAX_FILENAME_LENGTH];
+
+    printf("Entrez le nom du fichier d'exclusions : ");
+    scanf("%s", filenameExclusions);
+    printf("Entrez le nom du fichier de precedences : ");
+    scanf("%s", filenamePrecedences);
+    printf("Entrez le nom du fichier d'operation : ");
+    scanf("%s", filenameOperations);
+    printf("Entrez le nom du fichier de temps de cycle : ");
+    scanf("%s", filenameTempsCycle);
+*/
+
     FILE* fichierExclusions = fopen("../exclusions.txt", "r");
     FILE* fichierPrecedences = fopen("../precedences.txt", "r");
     FILE* fichierOperations = fopen("../operations.txt", "r");
+    FILE* fichierTempsCycle = fopen("../temps_cycle.txt", "r");
 
-    if (fichierExclusions == NULL || fichierPrecedences == NULL) {
+    if (fichierExclusions == NULL || fichierPrecedences == NULL || fichierOperations == NULL || fichierTempsCycle == NULL) {
         printf("Erreur de lecture des fichiers\n");
         return 1;
     }
@@ -344,13 +361,17 @@ int main() {
         operations[op1].tempsExecution = Optime;
     }
 
+    // Contrainte de temps de cycle
+    float T0; // Temps de cycle
+    fscanf(fichierTempsCycle, "%fl", &T0);
+
     fclose(fichierExclusions);
     fclose(fichierPrecedences);
+    fclose(fichierOperations);
+    fclose(fichierTempsCycle);
 
-    // Contrainte de temps de cycle
-    float T0 = 2; // Temps de cycle
 
-   // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
+    // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
     Station* stations = malloc(N * sizeof(Station));
     int nombreStations = 0;
 
