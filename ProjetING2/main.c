@@ -1,3 +1,4 @@
+
 #include <stdio.h>
 #include <stdlib.h>
 
@@ -135,26 +136,45 @@ float LectureDesFichiers(Operation* operations){
     return T0;
 }
 
+// Fonction récursive pour afficher toutes les opérations antérieures
+void AfficherOperationsAnterieures(Operation* operations, int indiceOperation) {
+    printf("%d: ", operations[indiceOperation].numero);
+
+    // Afficher les opérations antérieures
+    for (int i = 0; i < operations[indiceOperation].nombrePrecedences; ++i) {
+        int precedente = operations[indiceOperation].precedences[i];
+        AfficherOperationsAnterieures(operations, precedente);
+    }
+
+    printf("\n");
+}
+
 // Calcul des dates au plus tôt et au plus tard pour chaque opération
 void CalculerDatesPERT(Operation* operations) {
     for (int i = 1; i < N; ++i) {
+        printf("Opération %d - Opérations antérieures : ", operations[i].numero);
+
         // Calculer la date au plus tôt en fonction des précédences
         float datePlusTot = 0;
         for (int j = 0; j < operations[i].nombrePrecedences; ++j) {
             int precedente = operations[i].precedences[j];
+            AfficherOperationsAnterieures(operations, precedente);
+
             if (operations[precedente].datePlusTard + operations[precedente].tempsExecution > datePlusTot) {
                 datePlusTot = operations[precedente].datePlusTard + operations[precedente].tempsExecution;
             }
         }
-        operations[i].datePlusTot = datePlusTot;
 
-        // Initialiser la date au plus tard à la date au plus tôt
+        operations[i].datePlusTot = datePlusTot;
         operations[i].datePlusTard = datePlusTot;
+
+        printf("\n");
     }
 }
 
 // Fonction pour vérifier la compatibilité d'une opération avec une station
 int VerifierCompatibilite(Operation* operation, Station* stations, int nombreStations) {
+
     // Vérifier les contraintes d'exclusion avec les opérations existantes dans toutes les stations
     for (int k = 0; k < nombreStations; ++k) {
         for (int l = 0; l < stations[k].nombreOperations; ++l) {
