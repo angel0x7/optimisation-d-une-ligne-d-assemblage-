@@ -3,6 +3,7 @@
 #include <stdlib.h>
 
 #define N 36
+
 #define MAX_FILENAME_LENGTH 100
 
 typedef struct Operation {
@@ -15,6 +16,8 @@ typedef struct Operation {
     int nombrePrecedences; // Nombre d'éléments dans le tableau des précédences
     float datePlusTot;  // Date au plus tôt
     float datePlusTard; // Date au plus tard
+    int* anterieur;
+    int nombreAnterieur;
 } Operation;
 
 typedef struct Station {
@@ -53,6 +56,7 @@ Operation* InitialisationOperation(){
         operations[i].numero = i;
         operations[i].tempsExecution = 0;
         operations[i].station = 0;  // Initialisation à 0
+
         operations[i].exclusion = malloc(N * sizeof(int)); // Initialisation du tableau d'exclusion
         // Vérifiez que l'allocation de mémoire a réussi
         if (operations[i].exclusion == NULL) {
@@ -60,6 +64,7 @@ Operation* InitialisationOperation(){
             return NULL;
         }
         operations[i].nombreExclusions = 0; // Initialisation du nombre d'exclusions
+
         operations[i].precedences = malloc(N * sizeof(int)); // Initialisation du tableau des précédences
         // Vérifiez que l'allocation de mémoire a réussi
         if (operations[i].precedences == NULL) {
@@ -69,6 +74,14 @@ Operation* InitialisationOperation(){
         operations[i].nombrePrecedences = 0; // Initialisation du nombre de précédences
         operations[i].datePlusTot = 0;
         operations[i].datePlusTard = 0;
+
+        operations[i].anterieur = malloc(N * sizeof(int)); // Initialisation du tableau des anterieurs
+        // Vérifiez que l'allocation de mémoire a réussi
+        if (operations[i].anterieur == NULL) {
+            printf("Erreur lors de l'allocation de la anterieur de l'operation %d\n", i);
+            return NULL;
+        }
+        operations[i].nombreAnterieur = 0;
     }
     return operations;
 }
@@ -137,31 +150,47 @@ float LectureDesFichiers(Operation* operations){
 }
 
 // Fonction récursive pour afficher toutes les opérations antérieures
-void AfficherOperationsAnterieures(Operation* operations, int indiceOperation) {
-    printf("%d: ", operations[indiceOperation].numero);
+void AfficherOperationsAnterieures(Operation* operations, int indiceOperation, int* dejaAffiche, int* Tableu) {
+    if (!dejaAffiche[indiceOperation]) {
+        dejaAffiche[indiceOperation] = 1;
+        Tableu[indiceOperation] = operations[indiceOperation].numero;
 
-    // Afficher les opérations antérieures
-    for (int i = 0; i < operations[indiceOperation].nombrePrecedences; ++i) {
-        int precedente = operations[indiceOperation].precedences[i];
-        AfficherOperationsAnterieures(operations, precedente);
+        // Afficher les opérations antérieures
+        for (int i = 0; i < operations[indiceOperation].nombrePrecedences; ++i) {
+            int precedente = operations[indiceOperation].precedences[i];
+            AfficherOperationsAnterieures(operations, precedente, dejaAffiche, Tableu);
+        }
     }
-
-    printf("\n");
 }
 
 // Calcul des dates au plus tôt et au plus tard pour chaque opération
 void CalculerDatesPERT(Operation* operations) {
+
     for (int i = 1; i < N; ++i) {
-        printf("Opération %d - Opérations antérieures : ", operations[i].numero);
+        int dejaAffiche[N] = {0};  // Initialiser le tableau des opérations déjà affichées à 0
+
+        operations[i].anterieur = malloc(N * sizeof(int)); // Initialisation du tableau d'antérioriter
+        // Vérifiez que l'allocation de mémoire a réussi
+        if (operations[i].anterieur == NULL) {
+            printf("Erreur lors de l'allocation de l'exclusion de l'operation %d\n", i);
+            exit(1);
+        }
+        printf("Operation %d : ", operations[i].numero);
 
         // Calculer la date au plus tôt en fonction des précédences
         float datePlusTot = 0;
         for (int j = 0; j < operations[i].nombrePrecedences; ++j) {
             int precedente = operations[i].precedences[j];
-            AfficherOperationsAnterieures(operations, precedente);
+            AfficherOperationsAnterieures(operations, precedente, dejaAffiche, operations[i].anterieur);
 
             if (operations[precedente].datePlusTard + operations[precedente].tempsExecution > datePlusTot) {
                 datePlusTot = operations[precedente].datePlusTard + operations[precedente].tempsExecution;
+            }
+        }
+
+        for (int j = 0; j < N; ++j) {
+            if(operations[i].anterieur[j] != 0){
+                printf("%d-", operations[i].anterieur[j]);
             }
         }
 
@@ -174,21 +203,21 @@ void CalculerDatesPERT(Operation* operations) {
 
 // Fonction pour vérifier la compatibilité d'une opération avec une station
 int VerifierCompatibilite(Operation* operation, Station* stations, int nombreStations) {
+/*
+    // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
+    for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
+        int opExistante = stations[j].operations[k].numero;
 
-    // Vérifier les contraintes d'exclusion avec les opérations existantes dans toutes les stations
-    for (int k = 0; k < nombreStations; ++k) {
-        for (int l = 0; l < stations[k].nombreOperations; ++l) {
-            int opExistante = stations[k].operations[l].numero;
-
-            // Vérifier si l'opération en cours est exclue de l'opération existante
-            for (int m = 0; m < operation->nombreExclusions; ++m) {
-                if (opExistante == operation->exclusion[m]) {
-                    return 0; // Non compatible
-                }
+        // Vérifier si l'opération en cours est exclue de l'opération existante
+        for (int l = 0; l < operations[i].nombreExclusions; ++l) {
+            if (opExistante == operations[i].exclusion[l]) {
+                compatible = 0;
+                break;
             }
         }
     }
-
+*/
+    /*
     // Vérifier les contraintes de précédence avec les opérations existantes dans toutes les stations
     for (int l = 0; l < operation->nombrePrecedences; ++l) {
         int precedente = operation->precedences[l];
@@ -197,8 +226,7 @@ int VerifierCompatibilite(Operation* operation, Station* stations, int nombreSta
         // Vérifier si l'opération précédente est déjà dans une station
         for (int k = 0; k < nombreStations; ++k) {
             for (int m = 0; m < stations[k].nombreOperations; ++m) {
-                if (precedente == stations[k].operations[m].numero &&
-                    stations[k].operations[m].datePlusTard > operation->datePlusTot) {
+                if (precedente == stations[k].operations[m].numero && stations[k].operations[m].datePlusTard > operation->datePlusTot) {
                     precedenteTrouvee = 1;
                     break;
                 }
@@ -213,6 +241,7 @@ int VerifierCompatibilite(Operation* operation, Station* stations, int nombreSta
             return 0; // Non compatible
         }
     }
+    */
 
     // Vérifier la contrainte de temps de cycle pour chaque station
     for (int k = 0; k < nombreStations; ++k) {
@@ -224,6 +253,39 @@ int VerifierCompatibilite(Operation* operation, Station* stations, int nombreSta
     return 1; // Compatible
 }
 
+// Fonction pour vérifier si toutes les opérations antérieures ont été utilisées dans l'ensemble des stations
+int VerifierAnterieuresUtilisees(Operation* operations, int indiceOperation, Station* stations, int nombreStations) {
+    for (int l = 0; l < nombreStations; ++l) {
+        int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
+
+        for (int k = 0; k < N; ++k) {
+            if (operations[indiceOperation].anterieur[k] != 0) {
+                int anterieureATrouver = operations[indiceOperation].anterieur[k];
+
+                int anterieureTrouvee = 0;
+
+                for (int m = 0; m < stations[l].nombreOperations; ++m) {
+                    if (stations[l].operations[m].numero == anterieureATrouver) {
+                        anterieureTrouvee = 1;
+                        break;
+                    }
+                }
+
+                if (!anterieureTrouvee) {
+                    toutesAnterieuresUtilisees = 0;
+                    break;  // Si une antérieure n'est pas trouvée, arrêter la recherche
+                }
+            }
+        }
+
+        if (toutesAnterieuresUtilisees) {
+            return 1;  // Toutes les antérieures ont été utilisées dans cette station
+        }
+    }
+
+    return 0;  // Toutes les antérieures n'ont pas été utilisées dans l'ensemble des stations
+}
+
 int main() {
 
     Operation *operations = InitialisationOperation();
@@ -233,7 +295,6 @@ int main() {
     // Calcul des dates au plus tôt et au plus tard
     CalculerDatesPERT(operations);
 
-    // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
     Station* stations = malloc(N * sizeof(Station));
     int nombreStations = 0;
 
@@ -243,9 +304,39 @@ int main() {
 
         // Parcourir les stations existantes pour trouver une station disponible
         for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
-            int compatible = VerifierCompatibilite(&operations[i], stations, nombreStations);
+           // int compatible = VerifierCompatibilite(&operations[i], stations, nombreStations);
 
-            // Si compatible, ajouter l'opération à la station
+            int compatible = 1;
+
+
+            // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
+            for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
+                int opExistante = stations[j].operations[k].numero;
+
+                // Vérifier si l'opération en cours est exclue de l'opération existante
+                for (int l = 0; l < operations[i].nombreExclusions; ++l) {
+                    if (opExistante == operations[i].exclusion[l]) {
+                        compatible = 0;
+                        break;
+                    }
+                }
+            }
+
+
+            // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
+            if (!VerifierAnterieuresUtilisees(operations, i, stations, nombreStations)) {
+                compatible = 0;
+            }
+
+
+            // Vérifier la contrainte de temps de cycle pour chaque station
+            for (int k = 0; k < nombreStations; ++k) {
+                if (stations[k].tempsTotal + operations[i].tempsExecution > stations[k].tempsCycle) {
+                    compatible = 0; // Non compatible
+                }
+            }
+
+                // Si compatible, ajouter l'opération à la station
             if (compatible) {
                 stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                 stations[j].operations[stations[j].nombreOperations] = operations[i];
