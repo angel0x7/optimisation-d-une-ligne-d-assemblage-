@@ -37,7 +37,7 @@ void afficherRepartition(Station* stations, int nombreStations) {
         for (int j = 0; j < stations[i].nombreOperations; ++j) {
             printf(" %d", stations[i].operations[j].numero);
         }
-        printf("\n");
+        printf(" -- temps de cycle: %f\n", stations[i].tempsTotal);
     }
     printf("\n--------------------------------------------------------------------------------------\n\n");
 }
@@ -297,6 +297,13 @@ int main() {
 
     Station* stations = malloc(N * sizeof(Station));
     int nombreStations = 0;
+    for (int i = 0; i < N; ++i) {
+        stations[i].nombreOperations = 1;
+        stations[i].numero = 0;
+        stations[i].tempsTotal = 0;
+        stations[i].tempsCycle = T0;
+        stations[i].operations = malloc(N * sizeof(Operation));
+    }
 
     // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
     for (int i = 1; i < N; ++i) {
@@ -307,7 +314,6 @@ int main() {
            // int compatible = VerifierCompatibilite(&operations[i], stations, nombreStations);
 
             int compatible = 1;
-
 
             // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
             for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
@@ -322,18 +328,16 @@ int main() {
                 }
             }
 
-
+/*
             // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
             if (!VerifierAnterieuresUtilisees(operations, i, stations, nombreStations)) {
                 compatible = 0;
             }
-
+*/
 
             // Vérifier la contrainte de temps de cycle pour chaque station
-            for (int k = 0; k < nombreStations; ++k) {
-                if (stations[k].tempsTotal + operations[i].tempsExecution > stations[k].tempsCycle) {
-                    compatible = 0; // Non compatible
-                }
+            if (stations[j].tempsTotal + operations[i].tempsExecution > stations[j].tempsCycle) {
+                compatible = 0; // Non compatible
             }
 
                 // Si compatible, ajouter l'opération à la station
@@ -350,11 +354,10 @@ int main() {
         // Si aucune station n'est compatible, créer une nouvelle station
         if (!placeTrouvee) {
             stations[nombreStations].numero = nombreStations + 1;
-            stations[nombreStations].operations = malloc(sizeof(Operation));
             stations[nombreStations].operations[0] = operations[i];
-            stations[nombreStations].nombreOperations = 1;
             stations[nombreStations].tempsTotal = operations[i].tempsExecution;
-            stations[nombreStations].tempsCycle = T0;  // Initialisation du temps de cycle pour chaque nouvelle station
+            //stations[nombreStations].nombreOperations = 1;
+            //stations[nombreStations].tempsCycle = T0;  // Initialisation du temps de cycle pour chaque nouvelle station
             operations[i].station = stations[nombreStations].numero;
             nombreStations++;
         }
