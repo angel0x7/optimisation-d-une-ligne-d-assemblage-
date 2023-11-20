@@ -255,32 +255,8 @@ int VerifierCompatibilite(Operation* operation, Station* stations, int nombreSta
 
 // Fonction pour vérifier si toutes les opérations antérieures ont été utilisées dans l'ensemble des stations
 int VerifierAnterieuresUtilisees(Operation* operations, int indiceOperation, Station* stations, int nombreStations) {
-    for (int l = 0; l < nombreStations; ++l) {
-        int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
+    for (int l = 0; l <= nombreStations; ++l) {
 
-        for (int k = 0; k < N; ++k) {
-            if (operations[indiceOperation].anterieur[k] != 0) {
-                int anterieureATrouver = operations[indiceOperation].anterieur[k];
-
-                int anterieureTrouvee = 0;
-
-                for (int m = 0; m < stations[l].nombreOperations; ++m) {
-                    if (stations[l].operations[m].numero == anterieureATrouver) {
-                        anterieureTrouvee = 1;
-                        break;
-                    }
-                }
-
-                if (!anterieureTrouvee) {
-                    toutesAnterieuresUtilisees = 0;
-                    break;  // Si une antérieure n'est pas trouvée, arrêter la recherche
-                }
-            }
-        }
-
-        if (toutesAnterieuresUtilisees) {
-            return 1;  // Toutes les antérieures ont été utilisées dans cette station
-        }
     }
 
     return 0;  // Toutes les antérieures n'ont pas été utilisées dans l'ensemble des stations
@@ -313,7 +289,7 @@ int main() {
         for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
            // int compatible = VerifierCompatibilite(&operations[i], stations, nombreStations);
 
-            int compatible = 1;
+            int compatible = 1, compatible2 = 1, compatible3 = 1;
 
             // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
             for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
@@ -327,14 +303,39 @@ int main() {
                     }
                 }
             }
-
 /*
             // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
-            if (!VerifierAnterieuresUtilisees(operations, i, stations, nombreStations)) {
-                compatible = 0;
-            }
-*/
+            int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
 
+            for (int k = 0; k < N && toutesAnterieuresUtilisees == 1; ++k) {
+                if (operations[i].anterieur[k] != 0) {
+                    //int anterieureATrouver = operations[i].anterieur[k];
+
+                    int anterieureTrouvee = 0;
+
+                    for (int l = 0; l <= nombreStations; ++l) {
+                        for (int m = 0; m < stations[j].nombreOperations; ++m) {
+                            if (stations[j].operations[m].numero == operations[i].anterieur[k]) {
+                                anterieureTrouvee = 1;
+                                break;
+                            }
+                        }
+                    }
+
+
+                    if (!anterieureTrouvee) {
+                        toutesAnterieuresUtilisees = 0;
+                        break;  // Si une antérieure n'est pas trouvée, arrêter la recherche
+                    }
+                }
+            }
+
+            if (toutesAnterieuresUtilisees) {
+                compatible2 = 1;  // Toutes les antérieures ont été utilisées dans cette station
+            }
+
+
+*/
             // Vérifier la contrainte de temps de cycle pour chaque station
             if (stations[j].tempsTotal + operations[i].tempsExecution > stations[j].tempsCycle) {
                 compatible = 0; // Non compatible
