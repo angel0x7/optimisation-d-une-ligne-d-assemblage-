@@ -201,67 +201,6 @@ void CalculerDatesPERT(Operation* operations) {
     }
 }
 
-// Fonction pour vérifier la compatibilité d'une opération avec une station
-int VerifierCompatibilite(Operation* operation, Station* stations, int nombreStations) {
-/*
-    // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
-    for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
-        int opExistante = stations[j].operations[k].numero;
-
-        // Vérifier si l'opération en cours est exclue de l'opération existante
-        for (int l = 0; l < operations[i].nombreExclusions; ++l) {
-            if (opExistante == operations[i].exclusion[l]) {
-                compatible = 0;
-                break;
-            }
-        }
-    }
-*/
-    /*
-    // Vérifier les contraintes de précédence avec les opérations existantes dans toutes les stations
-    for (int l = 0; l < operation->nombrePrecedences; ++l) {
-        int precedente = operation->precedences[l];
-        int precedenteTrouvee = 0;
-
-        // Vérifier si l'opération précédente est déjà dans une station
-        for (int k = 0; k < nombreStations; ++k) {
-            for (int m = 0; m < stations[k].nombreOperations; ++m) {
-                if (precedente == stations[k].operations[m].numero && stations[k].operations[m].datePlusTard > operation->datePlusTot) {
-                    precedenteTrouvee = 1;
-                    break;
-                }
-            }
-            if (precedenteTrouvee) {
-                break;
-            }
-        }
-
-        // Si une opération précédente manque, l'opération en cours n'est pas compatible
-        if (!precedenteTrouvee) {
-            return 0; // Non compatible
-        }
-    }
-    */
-
-    // Vérifier la contrainte de temps de cycle pour chaque station
-    for (int k = 0; k < nombreStations; ++k) {
-        if (stations[k].tempsTotal + operation->tempsExecution > stations[k].tempsCycle) {
-            return 0; // Non compatible
-        }
-    }
-
-    return 1; // Compatible
-}
-
-// Fonction pour vérifier si toutes les opérations antérieures ont été utilisées dans l'ensemble des stations
-int VerifierAnterieuresUtilisees(Operation* operations, int indiceOperation, Station* stations, int nombreStations) {
-    for (int l = 0; l <= nombreStations; ++l) {
-
-    }
-
-    return 0;  // Toutes les antérieures n'ont pas été utilisées dans l'ensemble des stations
-}
-
 int main() {
 
     Operation *operations = InitialisationOperation();
@@ -287,7 +226,6 @@ int main() {
 
         // Parcourir les stations existantes pour trouver une station disponible
         for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
-           // int compatible = VerifierCompatibilite(&operations[i], stations, nombreStations);
 
             int compatible = 1, compatible2 = 1, compatible3 = 1;
 
@@ -357,8 +295,6 @@ int main() {
             stations[nombreStations].numero = nombreStations + 1;
             stations[nombreStations].operations[0] = operations[i];
             stations[nombreStations].tempsTotal = operations[i].tempsExecution;
-            //stations[nombreStations].nombreOperations = 1;
-            //stations[nombreStations].tempsCycle = T0;  // Initialisation du temps de cycle pour chaque nouvelle station
             operations[i].station = stations[nombreStations].numero;
             nombreStations++;
         }
