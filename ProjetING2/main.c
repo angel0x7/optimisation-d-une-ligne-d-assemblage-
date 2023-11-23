@@ -204,6 +204,7 @@ void CalculerDatesPERT(Operation* operations) {
         for (int j = 0; j < N; ++j) {
             if(operations[i].anterieur[j] != 0){
                 printf("%d-", operations[i].anterieur[j]);
+                operations[i].nombreAnterieur++;
             }
         }
 
@@ -224,17 +225,34 @@ int main() {
     // Calcul des dates au plus tôt et au plus tard
     CalculerDatesPERT(operations);
 
+    // Tri à bulles pour trier les opérations par nombre d'antérieurs
+    for (int i = 1; i < N; ++i) {
+        for (int j = 0; j < N - i; ++j) {
+            if (operations[j].nombreAnterieur > operations[j + 1].nombreAnterieur) {
+                // Échanger les opérations
+                Operation temp = operations[j];
+                operations[j] = operations[j + 1];
+                operations[j + 1] = temp;
+            }
+        }
+    }
+
+    // Afficher les opérations triées par nombre d'antérieurs
+    for (int i = 0; i < N; ++i) {
+        printf("%d = %d\n", operations[i].numero, operations[i].nombreAnterieur);
+    }
+
     Station* stations = InitialisationStation(T0);
     int nombreStations = 0;
 
 
     // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
     for (int i = 1; i < N; ++i) {
+        printf("Operation : %d\n", operations[i].numero);
         int placeTrouvee = 0;
 
         // Parcourir les stations existantes pour trouver une station disponible
         for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
-            printf("Station %d: operation %d:", stations[j].numero, operations[i].numero);
 
             int compatible = 1, compatible2 = 1, compatible3 = 1;
 
@@ -251,25 +269,22 @@ int main() {
                 }
             }
 
-
             // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
             int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
 
             for (int k = 0; k < N && toutesAnterieuresUtilisees == 1; ++k) {
                 if (operations[i].anterieur[k] != 0) {
                     int anterieureATrouver = operations[i].anterieur[k];
-                    printf("%d-", operations[i].anterieur[k]);
                     int anterieureTrouvee = 0;
 
                     for (int l = 0; l <= nombreStations; ++l) {
                         for (int m = 0; m <= stations[l].nombreOperations; ++m) {
-                            if (stations[l].operations[m].numero == operations[i].anterieur[k]) {
+                            if (stations[l].operations[m].numero == anterieureATrouver) {
                                 anterieureTrouvee = 1;
                                 break;
                             }
                         }
                     }
-
 
                     if (!anterieureTrouvee) {
                         toutesAnterieuresUtilisees = 0; // Si une antérieure n'est pas trouvée, arrêter la recherche
@@ -282,14 +297,13 @@ int main() {
                 compatible = 1;  // Toutes les antérieures ont été utilisées dans cette station
             }
 
-
             // Vérifier la contrainte de temps de cycle pour chaque station
             if (stations[j].tempsTotal + operations[i].tempsExecution > stations[j].tempsCycle) {
                 compatible3 = 0; // Non compatible
             }
 
                 // Si compatible, ajouter l'opération à la station
-            if (compatible && compatible2 && compatible3) {
+            if (compatible && compatible3) {
                 stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                 stations[j].operations[stations[j].nombreOperations] = operations[i];
                 stations[j].nombreOperations++;
@@ -298,7 +312,6 @@ int main() {
                 placeTrouvee = 1;
             }
         }
-        printf("\n");
 
         // Si aucune station n'est compatible, créer une nouvelle station
         if (!placeTrouvee) {
