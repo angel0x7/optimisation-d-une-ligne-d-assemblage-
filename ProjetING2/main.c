@@ -86,6 +86,19 @@ Operation* InitialisationOperation(){
     return operations;
 }
 
+Station* InitialisationStation(float T0){
+    Station* stations = malloc(N * sizeof(Station));
+
+    for (int i = 0; i < N; ++i) {
+        stations[i].nombreOperations = 1;
+        stations[i].numero = 0;
+        stations[i].tempsTotal = 0;
+        stations[i].tempsCycle = T0;
+        stations[i].operations = malloc(N * sizeof(Operation));
+    }
+    return stations;
+}
+
 float LectureDesFichiers(Operation* operations){
 
     char filenameExclusions[MAX_FILENAME_LENGTH];
@@ -201,6 +214,7 @@ void CalculerDatesPERT(Operation* operations) {
     }
 }
 
+
 int main() {
 
     Operation *operations = InitialisationOperation();
@@ -210,15 +224,9 @@ int main() {
     // Calcul des dates au plus tôt et au plus tard
     CalculerDatesPERT(operations);
 
-    Station* stations = malloc(N * sizeof(Station));
+    Station* stations = InitialisationStation(T0);
     int nombreStations = 0;
-    for (int i = 0; i < N; ++i) {
-        stations[i].nombreOperations = 1;
-        stations[i].numero = 0;
-        stations[i].tempsTotal = 0;
-        stations[i].tempsCycle = T0;
-        stations[i].operations = malloc(N * sizeof(Operation));
-    }
+
 
     // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
     for (int i = 1; i < N; ++i) {
@@ -226,34 +234,36 @@ int main() {
 
         // Parcourir les stations existantes pour trouver une station disponible
         for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
+            printf("Station %d: operation %d:", stations[j].numero, operations[i].numero);
 
             int compatible = 1, compatible2 = 1, compatible3 = 1;
 
             // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
-            for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
+            for (int k = 0; k < stations[j].nombreOperations && compatible2; ++k) {
                 int opExistante = stations[j].operations[k].numero;
 
                 // Vérifier si l'opération en cours est exclue de l'opération existante
                 for (int l = 0; l < operations[i].nombreExclusions; ++l) {
                     if (opExistante == operations[i].exclusion[l]) {
-                        compatible = 0;
+                        compatible2 = 0;
                         break;
                     }
                 }
             }
-/*
+
+
             // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
             int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
 
             for (int k = 0; k < N && toutesAnterieuresUtilisees == 1; ++k) {
                 if (operations[i].anterieur[k] != 0) {
-                    //int anterieureATrouver = operations[i].anterieur[k];
-
+                    int anterieureATrouver = operations[i].anterieur[k];
+                    printf("%d-", operations[i].anterieur[k]);
                     int anterieureTrouvee = 0;
 
                     for (int l = 0; l <= nombreStations; ++l) {
-                        for (int m = 0; m < stations[j].nombreOperations; ++m) {
-                            if (stations[j].operations[m].numero == operations[i].anterieur[k]) {
+                        for (int m = 0; m <= stations[l].nombreOperations; ++m) {
+                            if (stations[l].operations[m].numero == operations[i].anterieur[k]) {
                                 anterieureTrouvee = 1;
                                 break;
                             }
@@ -262,25 +272,24 @@ int main() {
 
 
                     if (!anterieureTrouvee) {
-                        toutesAnterieuresUtilisees = 0;
-                        break;  // Si une antérieure n'est pas trouvée, arrêter la recherche
+                        toutesAnterieuresUtilisees = 0; // Si une antérieure n'est pas trouvée, arrêter la recherche
+                        compatible = 0;
                     }
                 }
             }
 
             if (toutesAnterieuresUtilisees) {
-                compatible2 = 1;  // Toutes les antérieures ont été utilisées dans cette station
+                compatible = 1;  // Toutes les antérieures ont été utilisées dans cette station
             }
 
 
-*/
             // Vérifier la contrainte de temps de cycle pour chaque station
             if (stations[j].tempsTotal + operations[i].tempsExecution > stations[j].tempsCycle) {
-                compatible = 0; // Non compatible
+                compatible3 = 0; // Non compatible
             }
 
                 // Si compatible, ajouter l'opération à la station
-            if (compatible) {
+            if (compatible && compatible2 && compatible3) {
                 stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                 stations[j].operations[stations[j].nombreOperations] = operations[i];
                 stations[j].nombreOperations++;
@@ -289,6 +298,7 @@ int main() {
                 placeTrouvee = 1;
             }
         }
+        printf("\n");
 
         // Si aucune station n'est compatible, créer une nouvelle station
         if (!placeTrouvee) {
