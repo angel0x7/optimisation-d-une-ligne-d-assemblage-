@@ -13,10 +13,12 @@ typedef struct Operation {
     int* exclusion; // Tableau d'exclusion
     int nombreExclusions; // Nombre d'éléments dans le tableau d'exclusion
     int* precedences; // Tableau des opérations qui doivent précéder celle-ci
+    int* Toutprecedences; // Tableau des opérations qui doivent précéder celle-ci
     int nombrePrecedences; // Nombre d'éléments dans le tableau des précédences
     float datePlusTot;  // Date au plus tôt
     float datePlusTard; // Date au plus tard
     int* anterieur;
+    int* Toutanterieur;
     int nombreAnterieur;
 } Operation;
 
@@ -169,7 +171,7 @@ float LectureDesFichiers(Operation* operations){
 }
 
 // Fonction récursive pour afficher toutes les opérations antérieures
-void AfficherOperationsAnterieures(Operation* operations, int indiceOperation, int* dejaAffiche, int* Tableu) {
+void AfficherOperationsPrecedente(Operation* operations, int indiceOperation, int* dejaAffiche, int* Tableu) {
     if (!dejaAffiche[indiceOperation]) {
         dejaAffiche[indiceOperation] = 1;
         Tableu[indiceOperation] = operations[indiceOperation].numero;
@@ -177,7 +179,7 @@ void AfficherOperationsAnterieures(Operation* operations, int indiceOperation, i
         // Afficher les opérations antérieures
         for (int i = 0; i < operations[indiceOperation].nombrePrecedences; ++i) {
             int precedente = operations[indiceOperation].precedences[i];
-            AfficherOperationsAnterieures(operations, precedente, dejaAffiche, Tableu);
+            AfficherOperationsPrecedente(operations, precedente, dejaAffiche, Tableu);
         }
     }
 }
@@ -187,9 +189,9 @@ void CalculerDatesPERT(Operation* operations) {
 
     for (int i = 1; i < N; ++i) {
 
-        operations[i].anterieur = malloc(N * sizeof(int)); // Initialisation du tableau d'antériorité
+        operations[i].Toutprecedences = malloc(N * sizeof(int)); // Initialisation du tableau d'antériorité
         // Vérifiez que l'allocation de mémoire a réussi
-        if (operations[i].anterieur == NULL) {
+        if (operations[i].Toutprecedences == NULL) {
             printf("Erreur lors de l'allocation de l'exclusion de l'operation %d\n", i);
             exit(1);
         }
@@ -199,46 +201,25 @@ void CalculerDatesPERT(Operation* operations) {
         float datePlusTot = 0;
         for (int j = 0; j < operations[i].nombrePrecedences; ++j) {
             int precedente = operations[i].precedences[j];
-            int dejaAffiche[N] = {0};  // Initialiser le tableau des opérations déjà affichées à 0
+            int dejaAffichePrecedences[N] = {0};  // Initialiser le tableau des opérations déjà affichées à 0
 
-            AfficherOperationsAnterieures(operations, precedente, dejaAffiche, operations[i].anterieur);
+            AfficherOperationsPrecedente(operations, precedente, dejaAffichePrecedences, operations[i].Toutprecedences);
 
             if (operations[precedente].datePlusTard + operations[precedente].tempsExecution > datePlusTot) {
                 datePlusTot = operations[precedente].datePlusTard + operations[precedente].tempsExecution;
             }
         }
 
+
         for (int j = 1; j < N; ++j) {
-            if(operations[i].anterieur[j] != 0){
-                printf("%d-", operations[i].anterieur[j]);
-                operations[i].nombreAnterieur++;
+            if(operations[i].Toutprecedences[j] != 0){
+                printf("%d-", operations[i].Toutprecedences[j]);
             }
         }
         operations[i].datePlusTot = datePlusTot;
         operations[i].datePlusTard = datePlusTot;
 
         printf("\n");
-    }
-}
-
-// Tri à bulles pour trier les opérations par nombre d'antérieurs
-void triParOrdreCroissant(Operation* operations){
-    printf("\n\n--------------------------------------------------------------------------------------\n\n");
-
-    for (int i = 1; i < N; ++i) {
-        for (int j = 0; j < N - i; ++j) {
-            if (operations[j].nombreAnterieur > operations[j + 1].nombreAnterieur) {
-                // Échanger les opérations
-                Operation temp = operations[j];
-                operations[j] = operations[j + 1];
-                operations[j + 1] = temp;
-            }
-        }
-    }
-
-    // Afficher les opérations triées par nombre d'antérieurs
-    for (int i = 1; i < N; ++i) {
-        printf("Operation : %d - Nombre d'anterieur: %d\n", operations[i].numero, operations[i].nombreAnterieur);
     }
 }
 
@@ -269,9 +250,6 @@ int main() {
     // Calcul des dates au plus tôt et au plus tard
     CalculerDatesPERT(operations);
 
-    // Tri à bulles pour trier les opérations par nombre d'antérieurs
-    //triParOrdreCroissant(operations);
-
     Station* stations = InitialisationStation(T0);
     int nombreStations = 0;
 
@@ -282,7 +260,7 @@ int main() {
         // Parcourir les stations existantes pour trouver une station disponible
         for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
 
-            int compatible = 1, compatible2 = 1, compatible3 = 1;
+            int compatible = 1;
 
             // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
             for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
@@ -305,17 +283,24 @@ int main() {
                     int anterieureATrouver = operations[i].anterieur[k];
                     int anterieureTrouvee = 0;
 
-                    for (int l = 0; l <= nombreStations; ++l) {
-                        for (int m = 0; m <= stations[l].nombreOperations; ++m) {
+                    for (int l = 0; l < nombreStations; ++l) {
+                        // Vérifier si l'opération antérieure est déjà dans une autre station
+                        for (int m = 0; m < stations[l].nombreOperations; ++m) {
                             if (stations[l].operations[m].numero == anterieureATrouver) {
                                 anterieureTrouvee = 1;
                                 break;
                             }
                         }
+
+                        // Si l'opération antérieure est trouvée dans une autre station, arrêter la recherche
+                        if (anterieureTrouvee) {
+                            break;
+                        }
                     }
 
+                    // Si l'opération antérieure n'est pas trouvée dans une autre station, incompatible
                     if (!anterieureTrouvee) {
-                        toutesAnterieuresUtilisees = 0; // Si une antérieure n'est pas trouvée, arrêter la recherche
+                        toutesAnterieuresUtilisees = 0;
                         compatible = 0;
                     }
                 }
@@ -324,14 +309,11 @@ int main() {
             if (toutesAnterieuresUtilisees) {
                 compatible = 1;  // Toutes les antérieures ont été utilisées dans cette station
             }
+*/
 
             // Vérifier la contrainte de temps de cycle pour chaque station
-            if (stations[j].tempsTotal + operations[i].tempsExecution > stations[j].tempsCycle) {
-                compatible = 0; // Non compatible
-            }
-*/
-                // Si compatible, ajouter l'opération à la station
-            if (compatible) {
+            // Si compatible, ajouter l'opération à la station
+            if (compatible && stations[j].tempsTotal + operations[i].tempsExecution < stations[j].tempsCycle) {
                 stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                 stations[j].operations[stations[j].nombreOperations] = operations[i];
                 stations[j].nombreOperations++;
