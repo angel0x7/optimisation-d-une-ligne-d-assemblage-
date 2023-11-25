@@ -82,6 +82,12 @@ Operation* InitialisationOperation(){
             return NULL;
         }
         operations[i].nombreAnterieur = 0;
+
+        for (int j = 1; j < N; ++j) {
+            operations[i].exclusion[j] = 0;
+            operations[i].precedences[j] = 0;
+            operations[i].anterieur[j] = 0;
+        }
     }
     return operations;
 }
@@ -105,7 +111,7 @@ float LectureDesFichiers(Operation* operations){
     char filenamePrecedences[MAX_FILENAME_LENGTH];
     char filenameOperations[MAX_FILENAME_LENGTH];
     char filenameTempsCycle[MAX_FILENAME_LENGTH];
-
+/*
     printf("Entrez le nom du fichier d'exclusions :");
     scanf("%s", filenameExclusions);
     printf("\nEntrez le nom du fichier de precedences :");
@@ -114,7 +120,7 @@ float LectureDesFichiers(Operation* operations){
     scanf("%s", filenameOperations);
     printf("\nEntrez le nom du fichier de temps de cycle :");
     scanf("%s", filenameTempsCycle);
-
+*/
     FILE* fichierExclusions = fopen("../exclusions.txt", "r");
     //FILE* fichierExclusions = fopen(filenameExclusions, "r");
 
@@ -141,7 +147,7 @@ float LectureDesFichiers(Operation* operations){
 
     // Lecture des précédences à partir du fichier
     while (fscanf(fichierPrecedences, "%d %d", &op1, &op2) != EOF) {
-        operations[op2].precedences[operations[op2].nombrePrecedences++] = op1;
+        operations[op1].precedences[operations[op1].nombrePrecedences++] = op2;
     }
 
     float Optime;
@@ -180,9 +186,8 @@ void AfficherOperationsAnterieures(Operation* operations, int indiceOperation, i
 void CalculerDatesPERT(Operation* operations) {
 
     for (int i = 1; i < N; ++i) {
-        int dejaAffiche[N] = {0};  // Initialiser le tableau des opérations déjà affichées à 0
 
-        operations[i].anterieur = malloc(N * sizeof(int)); // Initialisation du tableau d'antérioriter
+        operations[i].anterieur = malloc(N * sizeof(int)); // Initialisation du tableau d'antériorité
         // Vérifiez que l'allocation de mémoire a réussi
         if (operations[i].anterieur == NULL) {
             printf("Erreur lors de l'allocation de l'exclusion de l'operation %d\n", i);
@@ -194,6 +199,8 @@ void CalculerDatesPERT(Operation* operations) {
         float datePlusTot = 0;
         for (int j = 0; j < operations[i].nombrePrecedences; ++j) {
             int precedente = operations[i].precedences[j];
+            int dejaAffiche[N] = {0};  // Initialiser le tableau des opérations déjà affichées à 0
+
             AfficherOperationsAnterieures(operations, precedente, dejaAffiche, operations[i].anterieur);
 
             if (operations[precedente].datePlusTard + operations[precedente].tempsExecution > datePlusTot) {
@@ -201,13 +208,12 @@ void CalculerDatesPERT(Operation* operations) {
             }
         }
 
-        for (int j = 0; j < N; ++j) {
+        for (int j = 1; j < N; ++j) {
             if(operations[i].anterieur[j] != 0){
                 printf("%d-", operations[i].anterieur[j]);
                 operations[i].nombreAnterieur++;
             }
         }
-
         operations[i].datePlusTot = datePlusTot;
         operations[i].datePlusTard = datePlusTot;
 
@@ -215,17 +221,10 @@ void CalculerDatesPERT(Operation* operations) {
     }
 }
 
+// Tri à bulles pour trier les opérations par nombre d'antérieurs
+void triParOrdreCroissant(Operation* operations){
+    printf("\n\n--------------------------------------------------------------------------------------\n\n");
 
-int main() {
-
-    Operation *operations = InitialisationOperation();
-
-    float T0 = LectureDesFichiers(operations);
-
-    // Calcul des dates au plus tôt et au plus tard
-    CalculerDatesPERT(operations);
-
-    // Tri à bulles pour trier les opérations par nombre d'antérieurs
     for (int i = 1; i < N; ++i) {
         for (int j = 0; j < N - i; ++j) {
             if (operations[j].nombreAnterieur > operations[j + 1].nombreAnterieur) {
@@ -238,17 +237,46 @@ int main() {
     }
 
     // Afficher les opérations triées par nombre d'antérieurs
-    for (int i = 0; i < N; ++i) {
-        printf("%d = %d\n", operations[i].numero, operations[i].nombreAnterieur);
+    for (int i = 1; i < N; ++i) {
+        printf("Operation : %d - Nombre d'anterieur: %d\n", operations[i].numero, operations[i].nombreAnterieur);
     }
+}
+
+// Libérer la mémoire
+void libererMemoir(Station* stations, Operation* operations, int nombreStations){
+
+    // Libérer la mémoire des opérations
+    for (int i = 0; i < N; ++i) {
+        free(operations[i].exclusion);
+        free(operations[i].precedences);
+        free(operations[i].anterieur); // Ajout pour libérer la mémoire des antérieurs
+    }
+    free(operations);
+
+    // Libérer la mémoire des stations
+    for (int i = 0; i < nombreStations; ++i) {
+        free(stations[i].operations);
+    }
+    free(stations);
+}
+
+int main() {
+
+    Operation *operations = InitialisationOperation();
+
+    float T0 = LectureDesFichiers(operations);
+
+    // Calcul des dates au plus tôt et au plus tard
+    CalculerDatesPERT(operations);
+
+    // Tri à bulles pour trier les opérations par nombre d'antérieurs
+    //triParOrdreCroissant(operations);
 
     Station* stations = InitialisationStation(T0);
     int nombreStations = 0;
 
-
     // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
     for (int i = 1; i < N; ++i) {
-        printf("Operation : %d\n", operations[i].numero);
         int placeTrouvee = 0;
 
         // Parcourir les stations existantes pour trouver une station disponible
@@ -257,18 +285,18 @@ int main() {
             int compatible = 1, compatible2 = 1, compatible3 = 1;
 
             // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
-            for (int k = 0; k < stations[j].nombreOperations && compatible2; ++k) {
+            for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
                 int opExistante = stations[j].operations[k].numero;
 
                 // Vérifier si l'opération en cours est exclue de l'opération existante
                 for (int l = 0; l < operations[i].nombreExclusions; ++l) {
                     if (opExistante == operations[i].exclusion[l]) {
-                        compatible2 = 0;
+                        compatible = 0;
                         break;
                     }
                 }
             }
-
+/*
             // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
             int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
 
@@ -299,11 +327,11 @@ int main() {
 
             // Vérifier la contrainte de temps de cycle pour chaque station
             if (stations[j].tempsTotal + operations[i].tempsExecution > stations[j].tempsCycle) {
-                compatible3 = 0; // Non compatible
+                compatible = 0; // Non compatible
             }
-
+*/
                 // Si compatible, ajouter l'opération à la station
-            if (compatible && compatible3) {
+            if (compatible) {
                 stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                 stations[j].operations[stations[j].nombreOperations] = operations[i];
                 stations[j].nombreOperations++;
@@ -327,16 +355,8 @@ int main() {
     afficherRepartition(stations, nombreStations);
 
     // Libérer la mémoire
-    for (int i = 0; i < N; ++i) {
-        free(operations[i].exclusion);
-        free(operations[i].precedences);
-    }
-    free(operations);
-
-    for (int i = 0; i < nombreStations; ++i) {
-        free(stations[i].operations);
-    }
-    free(stations);
+    libererMemoir(stations, operations, nombreStations);
 
     return 0;
 }
+
