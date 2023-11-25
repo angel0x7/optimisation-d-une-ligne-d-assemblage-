@@ -171,6 +171,27 @@ float LectureDesFichiers(Operation* operations){
 }
 
 // Fonction récursive pour afficher toutes les opérations antérieures
+void AfficherOperationsAnterieur(Operation* operations) {
+    printf("\n\n--------------------------------------------------------------------------------------\n\n");
+
+    for (int i = 1; i < N; ++i) {
+        for (int j = 1; j < N; ++j) {
+            int precedente = operations[i].Toutprecedences[j];
+            if (precedente != 0) {
+                operations[precedente].anterieur[operations[precedente].nombreAnterieur++] = operations[i].numero;
+            }
+        }
+    }
+    for (int i = 1; i < N; ++i) {
+        printf("Operation %d : ", operations[i].numero);
+        for (int j = 1; j < operations[i].nombreAnterieur; ++j) {
+            printf("%d-", operations[i].anterieur[j]);
+        }
+        printf("\n");
+    }
+}
+
+// Fonction récursive pour afficher toutes les opérations précédentes
 void AfficherOperationsPrecedente(Operation* operations, int indiceOperation, int* dejaAffiche, int* Tableu) {
     if (!dejaAffiche[indiceOperation]) {
         dejaAffiche[indiceOperation] = 1;
@@ -246,28 +267,12 @@ int main() {
     Operation *operations = InitialisationOperation();
 
     float T0 = LectureDesFichiers(operations);
-    printf("\n%d\n",operations[21].nombrePrecedences);
+
     // Calcul des dates au plus tôt et au plus tard
     CalculerDatesPERT(operations);
-    printf("\n\n%d\n\n",operations[1].nombrePrecedences);
 
-    for (int i = 1; i < N; ++i) {
-        for (int j = 1; j < N; ++j) {
-            int precedente = operations[i].Toutprecedences[j];
-            if (precedente != 0) {
-                operations[precedente].anterieur[operations[precedente].nombreAnterieur++] = operations[i].numero;
-            }
-        }
-    }
-    for (int i = 1; i < N; ++i) {
-        printf("Operation %d : ", operations[i].numero);
-        for (int j = 1; j < N; ++j) {
-            if(operations[i].anterieur[j] != 0){
-                printf("%d-", operations[i].anterieur[j]);
-            }
-        }
-        printf("\n");
-    }
+    AfficherOperationsAnterieur(operations);
+
     Station* stations = InitialisationStation(T0);
     int nombreStations = 0;
 
