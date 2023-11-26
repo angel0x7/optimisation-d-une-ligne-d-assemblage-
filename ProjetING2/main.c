@@ -303,7 +303,7 @@ int main() {
         for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
 
             int compatible = 1;
-/*
+
             // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
             for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
                 int opExistante = stations[j].operations[k].numero;
@@ -316,7 +316,7 @@ int main() {
                     }
                 }
             }
-*/
+
             // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
             int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
 
@@ -342,18 +342,12 @@ int main() {
                 // Si l'opération antérieure n'est pas trouvée dans une autre station, incompatible
                 if (!anterieureTrouvee) {
                     toutesAnterieuresUtilisees = 0;
-                    compatible = 0;
                 }
             }
 
-            if (toutesAnterieuresUtilisees) {
-                compatible = 1;  // Toutes les antérieures ont été utilisées dans cette station
-            }
-
-
             // Vérifier la contrainte de temps de cycle pour chaque station
             // Si compatible, ajouter l'opération à la station
-            if (compatible && stations[j].tempsTotal + operations[i].tempsExecution < stations[j].tempsCycle) {
+            if (toutesAnterieuresUtilisees && compatible && stations[j].tempsTotal + operations[i].tempsExecution < stations[j].tempsCycle) {
                 stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                 stations[j].operations[stations[j].nombreOperations] = operations[i];
                 stations[j].nombreOperations++;
