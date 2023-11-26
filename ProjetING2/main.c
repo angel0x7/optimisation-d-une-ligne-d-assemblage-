@@ -184,7 +184,7 @@ void AfficherOperationsAnterieur(Operation* operations) {
     }
     for (int i = 1; i < N; ++i) {
         printf("Operation %d : ", operations[i].numero);
-        for (int j = 1; j < operations[i].nombreAnterieur; ++j) {
+        for (int j = 0; j < operations[i].nombreAnterieur; ++j) {
             printf("%d-", operations[i].anterieur[j]);
         }
         printf("\n");
