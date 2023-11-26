@@ -18,7 +18,6 @@ typedef struct Operation {
     float datePlusTot;  // Date au plus tôt
     float datePlusTard; // Date au plus tard
     int* anterieur;
-    int* Toutanterieur;
     int nombreAnterieur;
 } Operation;
 
@@ -171,7 +170,7 @@ float LectureDesFichiers(Operation* operations){
 }
 
 // Fonction récursive pour afficher toutes les opérations antérieures
-void AfficherOperationsAnterieur(Operation* operations) {
+void AfficherOperationsAnterieur(Operation* operations)  {
     printf("\n\n--------------------------------------------------------------------------------------\n\n");
 
     for (int i = 1; i < N; ++i) {
@@ -244,6 +243,23 @@ void CalculerDatesPERT(Operation* operations) {
     }
 }
 
+// Tri à bulles en fonction du nombre d'antérieurs
+void trierParAnterieur(Operation* operations) {
+    for (int i = 1; i < N-1; ++i) {
+        for (int j = 1; j < N-i; ++j) {
+            if (operations[j].nombreAnterieur > operations[j+1].nombreAnterieur) {
+                Operation temp = operations[j];
+                operations[j] = operations[j+1];
+                operations[j+1] = temp;
+            }
+        }
+    }
+    for (int i = 1; i < N; ++i) {
+        printf("Operation %d : %d", operations[i].numero, operations[i].nombreAnterieur);
+        printf("\n");
+    }
+}
+
 // Libérer la mémoire
 void libererMemoir(Station* stations, Operation* operations, int nombreStations){
 
@@ -273,6 +289,9 @@ int main() {
 
     AfficherOperationsAnterieur(operations);
 
+    // Tri des opérations par ordre croissant du nombre d'antérieurs
+    trierParAnterieur(operations);
+
     Station* stations = InitialisationStation(T0);
     int nombreStations = 0;
 
@@ -284,7 +303,7 @@ int main() {
         for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
 
             int compatible = 1;
-
+/*
             // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
             for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
                 int opExistante = stations[j].operations[k].numero;
@@ -297,42 +316,40 @@ int main() {
                     }
                 }
             }
-/*
+*/
             // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
             int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
 
-            for (int k = 0; k < N && toutesAnterieuresUtilisees == 1; ++k) {
-                if (operations[i].anterieur[k] != 0) {
-                    int anterieureATrouver = operations[i].anterieur[k];
-                    int anterieureTrouvee = 0;
+            for (int k = 0; k < operations[i].nombreAnterieur && toutesAnterieuresUtilisees == 1; ++k) {
+                int anterieureATrouver = operations[i].anterieur[k];
+                int anterieureTrouvee = 0;
 
-                    for (int l = 0; l < nombreStations; ++l) {
-                        // Vérifier si l'opération antérieure est déjà dans une autre station
-                        for (int m = 0; m < stations[l].nombreOperations; ++m) {
-                            if (stations[l].operations[m].numero == anterieureATrouver) {
-                                anterieureTrouvee = 1;
-                                break;
-                            }
-                        }
-
-                        // Si l'opération antérieure est trouvée dans une autre station, arrêter la recherche
-                        if (anterieureTrouvee) {
+                for (int l = 0; l < nombreStations; ++l) {
+                    // Vérifier si l'opération antérieure est déjà dans une autre station
+                    for (int m = 0; m < stations[l].nombreOperations; ++m) {
+                        if (stations[l].operations[m].numero == anterieureATrouver) {
+                            anterieureTrouvee = 1;
                             break;
                         }
                     }
 
-                    // Si l'opération antérieure n'est pas trouvée dans une autre station, incompatible
-                    if (!anterieureTrouvee) {
-                        toutesAnterieuresUtilisees = 0;
-                        compatible = 0;
+                    // Si l'opération antérieure est trouvée dans une autre station, arrêter la recherche
+                    if (anterieureTrouvee) {
+                        break;
                     }
+                }
+
+                // Si l'opération antérieure n'est pas trouvée dans une autre station, incompatible
+                if (!anterieureTrouvee) {
+                    toutesAnterieuresUtilisees = 0;
+                    compatible = 0;
                 }
             }
 
             if (toutesAnterieuresUtilisees) {
                 compatible = 1;  // Toutes les antérieures ont été utilisées dans cette station
             }
-*/
+
 
             // Vérifier la contrainte de temps de cycle pour chaque station
             // Si compatible, ajouter l'opération à la station
