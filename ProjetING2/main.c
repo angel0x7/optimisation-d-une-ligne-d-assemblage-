@@ -158,7 +158,10 @@ float LectureDesFichiers(Operation* operations){
 
     // Contrainte de temps de cycle
     float T0; // Temps de cycle
-    fscanf(fichierTempsCycle, "%f", &T0);
+    if (fscanf(fichierTempsCycle, "%f", &T0) != 1) {
+        printf("Erreur lors de la lecture du temps de cycle\n");
+        exit(1);
+    }
 
 
     fclose(fichierExclusions);
@@ -245,6 +248,8 @@ void CalculerDatesPERT(Operation* operations) {
 
 // Tri à bulles en fonction du nombre d'antérieurs
 void trierParAnterieur(Operation* operations) {
+    printf("\n\n--------------------------------------------------------------------------------------\n\n");
+
     for (int i = 1; i < N-1; ++i) {
         for (int j = 1; j < N-i; ++j) {
             if (operations[j].nombreAnterieur > operations[j+1].nombreAnterieur) {
@@ -267,7 +272,8 @@ void libererMemoir(Station* stations, Operation* operations, int nombreStations)
     for (int i = 0; i < N; ++i) {
         free(operations[i].exclusion);
         free(operations[i].precedences);
-        free(operations[i].anterieur); // Ajout pour libérer la mémoire des antérieurs
+        free(operations[i].anterieur); // Libére la mémoire des antérieurs
+        free(operations[i].Toutprecedences); // Libére la mémoire de Toutprecedences
     }
     free(operations);
 
@@ -320,22 +326,17 @@ int main() {
             // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
             int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
 
-            for (int k = 0; k < operations[i].nombreAnterieur && toutesAnterieuresUtilisees == 1; ++k) {
+            for (int k = 0; k < operations[i].nombreAnterieur && toutesAnterieuresUtilisees; ++k) {
                 int anterieureATrouver = operations[i].anterieur[k];
                 int anterieureTrouvee = 0;
 
-                for (int l = 0; l < nombreStations; ++l) {
+                for (int l = 0; l < nombreStations && !anterieureTrouvee; ++l) {
                     // Vérifier si l'opération antérieure est déjà dans une autre station
                     for (int m = 0; m < stations[l].nombreOperations; ++m) {
                         if (stations[l].operations[m].numero == anterieureATrouver) {
                             anterieureTrouvee = 1;
                             break;
                         }
-                    }
-
-                    // Si l'opération antérieure est trouvée dans une autre station, arrêter la recherche
-                    if (anterieureTrouvee) {
-                        break;
                     }
                 }
 
@@ -347,7 +348,7 @@ int main() {
 
             // Vérifier la contrainte de temps de cycle pour chaque station
             // Si compatible, ajouter l'opération à la station
-            if (toutesAnterieuresUtilisees && compatible && stations[j].tempsTotal + operations[i].tempsExecution < stations[j].tempsCycle) {
+            if (toutesAnterieuresUtilisees && stations[j].tempsTotal + operations[i].tempsExecution < stations[j].tempsCycle) {
                 stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                 stations[j].operations[stations[j].nombreOperations] = operations[i];
                 stations[j].nombreOperations++;
