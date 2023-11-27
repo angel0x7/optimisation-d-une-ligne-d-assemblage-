@@ -299,6 +299,7 @@ void trierParAnterieur(Operation* operations, int nombreOperations) {
     }
 }
 
+// Tri à bulles dans l'ordre croissant des numéros des opérations pour une meilleur lisibilité
 void trierOperationsDansStations(Station* stations, int nombreStations) {
     for (int i = 0; i < nombreStations; ++i) {
         for (int j = 0; j < stations[i].nombreOperations - 1; ++j) {
@@ -335,7 +336,7 @@ void libererMemoir(Station* stations, Operation* operations, int nombreStations,
 
 int main() {
     // Lire le nombre d'opérations depuis les fichiers
-    int nombreOperations;
+    int nombreOperations = 0;
     lireNombreOperations("../exclusions.txt", &nombreOperations);
     lireNombreOperations("../precedences.txt", &nombreOperations);
     nombreOperations += 1;
@@ -365,7 +366,7 @@ int main() {
             // Parcourir les stations existantes pour trouver une station disponible
             for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
 
-                int Exclue = 1;
+                int Exclue = 1; // Suppose que l'opération n'est pas exclue
 
                 // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
                 for (int k = 0; k < stations[j].nombreOperations && Exclue; ++k) {
