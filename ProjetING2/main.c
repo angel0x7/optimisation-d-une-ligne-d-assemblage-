@@ -303,68 +303,71 @@ int main() {
 
     // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
     for (int i = 1; i < N; ++i) {
-        int placeTrouvee = 0;
+        if(operations[i].nombreAnterieur != 0 || operations[i].nombrePrecedences != 0 || operations[i].nombreExclusions != 0){
 
-        // Parcourir les stations existantes pour trouver une station disponible
-        for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
+            int placeTrouvee = 0;
 
-            int compatible = 1;
+            // Parcourir les stations existantes pour trouver une station disponible
+            for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
 
-            // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
-            for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
-                int opExistante = stations[j].operations[k].numero;
+                int compatible = 1;
 
-                // Vérifier si l'opération en cours est exclue de l'opération existante
-                for (int l = 0; l < operations[i].nombreExclusions; ++l) {
-                    if (opExistante == operations[i].exclusion[l]) {
-                        compatible = 0;
-                        break;
-                    }
-                }
-            }
+                // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
+                for (int k = 0; k < stations[j].nombreOperations && compatible; ++k) {
+                    int opExistante = stations[j].operations[k].numero;
 
-            // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
-            int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
-
-            for (int k = 0; k < operations[i].nombreAnterieur && toutesAnterieuresUtilisees; ++k) {
-                int anterieureATrouver = operations[i].anterieur[k];
-                int anterieureTrouvee = 0;
-
-                for (int l = 0; l < nombreStations && !anterieureTrouvee; ++l) {
-                    // Vérifier si l'opération antérieure est déjà dans une autre station
-                    for (int m = 0; m < stations[l].nombreOperations; ++m) {
-                        if (stations[l].operations[m].numero == anterieureATrouver) {
-                            anterieureTrouvee = 1;
+                    // Vérifier si l'opération en cours est exclue de l'opération existante
+                    for (int l = 0; l < operations[i].nombreExclusions; ++l) {
+                        if (opExistante == operations[i].exclusion[l]) {
+                            compatible = 0;
                             break;
                         }
                     }
                 }
 
-                // Si l'opération antérieure n'est pas trouvée dans une autre station, incompatible
-                if (!anterieureTrouvee) {
-                    toutesAnterieuresUtilisees = 0;
+                // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
+                int toutesAnterieuresUtilisees = 1;  // Suppose que toutes les antérieures sont utilisées
+
+                for (int k = 0; k < operations[i].nombreAnterieur && toutesAnterieuresUtilisees; ++k) {
+                    int anterieureATrouver = operations[i].anterieur[k];
+                    int anterieureTrouvee = 0;
+
+                    for (int l = 0; l < nombreStations && !anterieureTrouvee; ++l) {
+                        // Vérifier si l'opération antérieure est déjà dans une autre station
+                        for (int m = 0; m < stations[l].nombreOperations; ++m) {
+                            if (stations[l].operations[m].numero == anterieureATrouver) {
+                                anterieureTrouvee = 1;
+                                break;
+                            }
+                        }
+                    }
+
+                    // Si l'opération antérieure n'est pas trouvée dans une autre station, incompatible
+                    if (!anterieureTrouvee) {
+                        toutesAnterieuresUtilisees = 0;
+                    }
+                }
+
+                // Vérifier la contrainte de temps de cycle pour chaque station
+                // Si compatible, ajouter l'opération à la station
+                if (compatible && stations[j].tempsTotal + operations[i].tempsExecution < stations[j].tempsCycle) {
+                    stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
+                    stations[j].operations[stations[j].nombreOperations] = operations[i];
+                    stations[j].nombreOperations++;
+                    stations[j].tempsTotal += operations[i].tempsExecution;
+                    operations[i].station = stations[j].numero;
+                    placeTrouvee = 1;
                 }
             }
 
-            // Vérifier la contrainte de temps de cycle pour chaque station
-            // Si compatible, ajouter l'opération à la station
-            if (toutesAnterieuresUtilisees && stations[j].tempsTotal + operations[i].tempsExecution < stations[j].tempsCycle) {
-                stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
-                stations[j].operations[stations[j].nombreOperations] = operations[i];
-                stations[j].nombreOperations++;
-                stations[j].tempsTotal += operations[i].tempsExecution;
-                operations[i].station = stations[j].numero;
-                placeTrouvee = 1;
+            // Si aucune station n'est compatible, créer une nouvelle station
+            if (!placeTrouvee) {
+                stations[nombreStations].numero = nombreStations + 1;
+                stations[nombreStations].operations[0] = operations[i];
+                stations[nombreStations].tempsTotal = operations[i].tempsExecution;
+                operations[i].station = stations[nombreStations].numero;
+                nombreStations++;
             }
-        }
-
-        // Si aucune station n'est compatible, créer une nouvelle station
-        if (!placeTrouvee) {
-            stations[nombreStations].numero = nombreStations + 1;
-            stations[nombreStations].operations[0] = operations[i];
-            stations[nombreStations].tempsTotal = operations[i].tempsExecution;
-            operations[i].station = stations[nombreStations].numero;
-            nombreStations++;
         }
     }
 
