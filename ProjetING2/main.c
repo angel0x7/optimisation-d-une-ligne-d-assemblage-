@@ -26,16 +26,24 @@ typedef struct Station {
     float tempsCycle; // Temps de cycle de la station
 } Station;
 
-void afficherRepartition(Station* stations, int nombreStations) {
+typedef struct Choix{
+    int numero;
+    char* nom[6];
+}Choix;
+
+void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
     printf("\n\n--------------------------------------------------------------------------------------\n\n");
 
-    printf("Repartition des operations dans les stations :\n");
+    printf("Repartition des operations dans les stations en fonction de la %s:\n", choix.nom[choix.numero]);
     for (int i = 0; i < nombreStations; ++i) {
         printf("Station %d :", stations[i].numero);
         for (int j = 0; j < stations[i].nombreOperations; ++j) {
             printf(" %d", stations[i].operations[j].numero);
         }
-        printf(" -- temps de cycle: %f\n", stations[i].tempsTotal);
+        if ((choix.numero != 1) && (choix.numero != 3)){
+            printf(" -- temps de cycle: %f", stations[i].tempsTotal);
+        }
+        printf("\n");
     }
     printf("\n--------------------------------------------------------------------------------------\n\n");
 }
@@ -108,6 +116,17 @@ Station* InitialisationStation(float T0, int nombreOperations ){
         stations[i].operations = malloc(nombreOperations * sizeof(Operation));
     }
     return stations;
+}
+
+Choix InitialisationDUchoix(){
+    Choix choix;
+    choix.numero = 0;
+    choix.nom[1] = "contrainte d'exclusion seul";
+    choix.nom[2] = "contrainte de precedence et de temps de cycle";
+    choix.nom[3] = "contrainte d'exclusion et de precedence";
+    choix.nom[4] = "contrainte d'exclusion et temps de cycle";
+    choix.nom[5] = "contrainte d'exclusion de precedence et de temps de cycle";
+    return choix;
 }
 
 void lireNombreOperations(const char* filename, int* nombreOperations) {
@@ -290,7 +309,6 @@ void trierOperationsDansStations(Station* stations, int nombreStations) {
     }
 }
 
-
 void Menu(){
     printf("\n----------------------------Choissisez les contraintes que vous voulez----------------------------------\n");
     printf("|                   1- Contrainte d'exclusion seul                                                     |\n");
@@ -329,11 +347,11 @@ int main() {
     while (1){
 
         Menu();
-        int choix = 0;
+        Choix choix = InitialisationDUchoix();
         do {
-            scanf("%d", &choix);
-        } while (choix < 1 || choix > 6);
-        if(choix == 6){
+            scanf("%d", &choix.numero);
+        } while (choix.numero < 1 || choix.numero > 6);
+        if(choix.numero == 6){
             exit(1);
         }
 
@@ -393,16 +411,16 @@ int main() {
                         }
                     }
 
-                    if (choix == 1){
+                    if (choix.numero == 1){
                         if (Exclue) {
                             stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                             stations[j].operations[stations[j].nombreOperations] = operations[i];
                             stations[j].nombreOperations++;
-                            stations[j].tempsTotal += operations[i].tempsExecution;
+                            //stations[j].tempsTotal += operations[i].tempsExecution;
                             operations[i].station = stations[j].numero;
                             placeTrouvee = 1;
                         }
-                    } else if (choix == 2){
+                    } else if (choix.numero == 2){
                         if (toutesAnterieuresUtilisees == operations[i].nombreAnterieur && (stations[j].tempsTotal + operations[i].tempsExecution) < stations[j].tempsCycle) {
                             stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                             stations[j].operations[stations[j].nombreOperations] = operations[i];
@@ -411,17 +429,16 @@ int main() {
                             operations[i].station = stations[j].numero;
                             placeTrouvee = 1;
                         }
-
-                    } else if (choix == 3){
+                    } else if (choix.numero == 3){
                         if (Exclue && toutesAnterieuresUtilisees == operations[i].nombreAnterieur) {
                             stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                             stations[j].operations[stations[j].nombreOperations] = operations[i];
                             stations[j].nombreOperations++;
-                            stations[j].tempsTotal += operations[i].tempsExecution;
+                            //stations[j].tempsTotal += operations[i].tempsExecution;
                             operations[i].station = stations[j].numero;
                             placeTrouvee = 1;
                         }
-                    } else if (choix == 4){
+                    } else if (choix.numero == 4){
                         if (Exclue && (stations[j].tempsTotal + operations[i].tempsExecution) < stations[j].tempsCycle) {
                             stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                             stations[j].operations[stations[j].nombreOperations] = operations[i];
@@ -430,7 +447,7 @@ int main() {
                             operations[i].station = stations[j].numero;
                             placeTrouvee = 1;
                         }
-                    } else if (choix == 5){
+                    } else if (choix.numero == 5){
                         if (Exclue && toutesAnterieuresUtilisees == operations[i].nombreAnterieur && (stations[j].tempsTotal + operations[i].tempsExecution) < stations[j].tempsCycle){
                             stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
                             stations[j].operations[stations[j].nombreOperations] = operations[i];
@@ -440,9 +457,6 @@ int main() {
                             placeTrouvee = 1;
                         }
                     }
-                    // Vérifier la contrainte de temps de cycle pour chaque station
-                    // Si compatible, ajouter l'opération à la station
-
                 }
 
                 // Si aucune station n'est compatible, créer une nouvelle station
@@ -460,11 +474,10 @@ int main() {
         trierOperationsDansStations(stations, nombreStations);
 
         // Afficher la répartition des opérations dans les stations
-        afficherRepartition(stations, nombreStations);
+        afficherRepartition(stations, nombreStations, choix);
 
         // Libérer la mémoire
         //libererMemoir(stations, operations, nombreStations, nombreOperations);
     }
 
 }
-
