@@ -1,0 +1,3 @@
+"C:\Users\romeo\OneDrive\Bureau\programation\CLion 2022.2.3\bin\cmake\win\bin\cmake.exe" -E rm -f CMakeFiles\ProjetING2.dir/objects.a
+C:\Users\romeo\MinGW\bin\ar.exe qc CMakeFiles\ProjetING2.dir/objects.a @CMakeFiles\ProjetING2.dir\objects1.rsp
+C:\Users\romeo\MinGW\bin\gcc.exe -g -Wl,--whole-archive CMakeFiles\ProjetING2.dir/objects.a -Wl,--no-whole-archive -o ProjetING2.exe -Wl,--out-implib,libProjetING2.dll.a -Wl,--major-image-version,0,--minor-image-version,0 @CMakeFiles\ProjetING2.dir\linklibs.rsp
