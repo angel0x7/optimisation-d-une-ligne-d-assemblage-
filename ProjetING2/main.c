@@ -3,7 +3,7 @@
 
 #define MAX_FILENAME_LENGTH 100
 
-typedef struct Operation {// structure regroupant les données des opérations
+typedef struct Operation {
     int numero; // Numéro de l'opération
     float tempsExecution; // Temps que mets l'opération à s'éffectuer
     int station; // Numéro de la station où se situe l'opération
@@ -322,24 +322,21 @@ void Menu(){
 
 // Libérer la mémoire
 void libererMemoir(Station* stations, Operation* operations, int nombreStations, int nombreOperations){
-    printf("hello");
 
     // Libérer la mémoire des opérations
-    for (int i = 0; i < nombreOperations; ++i) {
+    for (int i = 1; i < nombreOperations; ++i) {
         free(operations[i].exclusion);
         free(operations[i].precedences);
         free(operations[i].anterieur); // Libére la mémoire des antérieurs
         free(operations[i].Toutprecedences); // Libére la mémoire de Toutprecedences
     }
     free(operations);
-    printf("hello");
 
     // Libérer la mémoire des stations
     for (int i = 0; i < nombreStations; ++i) {
         free(stations[i].operations);
     }
     free(stations);
-    printf("hello");
 
 }
 
@@ -477,7 +474,7 @@ int main() {
         afficherRepartition(stations, nombreStations, choix);
 
         // Libérer la mémoire
-        //libererMemoir(stations, operations, nombreStations, nombreOperations);
+        libererMemoir(stations, operations, nombreStations, nombreOperations);
     }
 
 }
