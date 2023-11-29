@@ -3,7 +3,7 @@
 
 #define MAX_FILENAME_LENGTH 100
 
-typedef struct Operation {
+typedef struct Operation {// structure regroupant les données des opérations
     int numero; // Numéro de l'opération
     float tempsExecution; // Temps que mets l'opération à s'éffectuer
     int station; // Numéro de la station où se situe l'opération
