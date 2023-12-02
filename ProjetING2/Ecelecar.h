@@ -31,4 +31,26 @@ typedef struct Choix{
     char* nom[6];
 }Choix;
 
+void afficherRepartition(Station* stations, int nombreStations, Choix choix);
+Operation* InitialisationOperation(int nombreOperations);
+Station* InitialisationStation(float T0, int nombreOperations );
+Choix InitialisationDUchoix();
+void lireNombreOperations(const char* filename, int* nombreOperations);
+void LectureFichierExclusion(Operation* operations, FILE* fichierExclusions);
+void LectureFichierPrecedence(Operation* operations, FILE* fichierPrecedences);
+void LectureFichierTimeOperation(Operation* operations, FILE* fichierOperations);
+float LectureFichierTempsCycle(FILE* fichierTempsCycle);
+float LectureDesFichiers(Operation* operations, char* filenameExclusions, char* filenamePrecedences, char* filenameOperations, char* filenameTempsCycle);
+void CreationOperationsAnterieur(Operation* operations, int nombreOperations);
+void CreationOperationsPrecedente(Operation* operations, int indiceOperation, int* dejaAffiche, int* Tableu);
+void CalculerDatesPERT(Operation* operations, int nombreOperations);
+void trierParAnterieur(Operation* operations, int nombreOperations);
+void trierOperationsDansStations(Station* stations, int nombreStations);
+void Menu();
+void FaireSonChoix(Choix* choix);
+void libererMemoir(Station* stations, Operation* operations, int nombreStations, int nombreOperations);
+int ContrainteExclusion(Station* stations, Operation* operations, int indiceJ, int IndiceI);
+int AjoutOperationDansStation(Station* stations, Operation* operations, int indiceJ, int IndiceI);
+int RepartitionsDesOperations(Station* stations, Operation* operations, Choix choix, int nombreOperations, int nombreStations);
+
 #endif //PROJETING2_ECELECAR_H
