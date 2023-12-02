@@ -194,33 +194,12 @@ float LectureFichierTempsCycle(FILE* fichierTempsCycle){
     return T0;
 }
 
-float LectureDesFichiers(Operation* operations){
+float LectureDesFichiers(Operation* operations, char* filenameExclusions, char* filenamePrecedences, char* filenameOperations, char* filenameTempsCycle){
 
-    char filenameExclusions[MAX_FILENAME_LENGTH];
-    char filenamePrecedences[MAX_FILENAME_LENGTH];
-    char filenameOperations[MAX_FILENAME_LENGTH];
-    char filenameTempsCycle[MAX_FILENAME_LENGTH];
-/*
-    printf("Entrez le nom du fichier d'exclusions :");
-    scanf("%s", filenameExclusions);
-    printf("\nEntrez le nom du fichier de precedences :");
-    scanf("%s", filenamePrecedences);
-    printf("\nEntrez le nom du fichier d'operation :");
-    scanf("%s", filenameOperations);
-    printf("\nEntrez le nom du fichier de temps de cycle :");
-    scanf("%s", filenameTempsCycle);
-*/
-    FILE* fichierExclusions = fopen("../exclusions.txt", "r");
-    //FILE* fichierExclusions = fopen(filenameExclusions, "r");
-
-    FILE* fichierPrecedences = fopen("../precedences.txt", "r");
-    //FILE* fichierExclusions = fopen(filenamePrecedences, "r");
-
-    FILE* fichierOperations = fopen("../operations.txt", "r");
-    //FILE* fichierExclusions = fopen(filenameOperations, "r");
-
-    FILE* fichierTempsCycle = fopen("../temps_cycle.txt", "r");
-    //FILE* fichierExclusions = fopen(filenameTempsCycle, "r");
+    FILE* fichierExclusions = fopen(filenameExclusions, "r");
+    FILE* fichierPrecedences = fopen(filenamePrecedences, "r");
+    FILE* fichierOperations = fopen(filenameOperations, "r");
+    FILE* fichierTempsCycle = fopen(filenameTempsCycle, "r");
 
     if (fichierExclusions == NULL || fichierPrecedences == NULL || fichierOperations == NULL || fichierTempsCycle == NULL) {
         printf("Erreur de lecture des fichiers\n");
@@ -465,6 +444,39 @@ int RepartitionsDesOperations(Station* stations, Operation* operations, Choix ch
 ///-----------------------------------------------------------------------------------------------------------------------------///
 
 int main() {
+
+    char filenameExclusions[MAX_FILENAME_LENGTH];
+    char filenamePrecedences[MAX_FILENAME_LENGTH];
+    char filenameOperations[MAX_FILENAME_LENGTH];
+    char filenameTempsCycle[MAX_FILENAME_LENGTH];
+    FILE* fichierExclusions;
+    FILE* fichierPrecedences;
+    FILE* fichierOperations;
+    FILE* fichierTempsCycle;
+    do {
+        printf("Entrez le nom du fichier d'exclusions :");
+        scanf("%s", filenameExclusions);
+        fichierExclusions = fopen(filenameExclusions, "r");
+    } while (fichierExclusions == NULL);
+
+    do {
+        printf("\nEntrez le nom du fichier de precedences :");
+        scanf("%s", filenamePrecedences);
+        fichierPrecedences = fopen(filenamePrecedences, "r");
+    } while (fichierPrecedences == NULL);
+    
+    do {
+        printf("\nEntrez le nom du fichier d'operation :");
+        scanf("%s", filenameOperations);
+        fichierOperations = fopen(filenameOperations, "r");
+    } while (fichierOperations == NULL);
+
+    do {
+        printf("\nEntrez le nom du fichier de temps de cycle :");
+        scanf("%s", filenameTempsCycle);
+        fichierTempsCycle = fopen(filenameTempsCycle, "r");
+    } while (fichierTempsCycle == NULL);
+    
     while (1){
 
         Menu();
@@ -473,12 +485,12 @@ int main() {
 
         // Lire le nombre d'opérations depuis les fichiers
         int nombreOperations = 0;
-        lireNombreOperations("../exclusions.txt", &nombreOperations);
-        lireNombreOperations("../precedences.txt", &nombreOperations);
+        lireNombreOperations(filenameExclusions, &nombreOperations);
+        lireNombreOperations(filenamePrecedences, &nombreOperations);
 
         Operation *operations = InitialisationOperation(nombreOperations);
 
-        float T0 = LectureDesFichiers(operations);
+        float T0 = LectureDesFichiers(operations, filenameExclusions, filenamePrecedences, filenameOperations, filenameTempsCycle);
 
         // Calcul des dates au plus tôt et au plus tard
         CalculerDatesPERT(operations, nombreOperations);
