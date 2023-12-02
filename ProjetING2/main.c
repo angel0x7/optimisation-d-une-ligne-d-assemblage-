@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 
 #define MAX_FILENAME_LENGTH 100
 
@@ -215,7 +216,6 @@ float LectureDesFichiers(Operation* operations, char* filenameExclusions, char* 
     fclose(fichierPrecedences);
     fclose(fichierOperations);
     fclose(fichierTempsCycle);
-
     return T0;
 }
 
@@ -444,11 +444,14 @@ int RepartitionsDesOperations(Station* stations, Operation* operations, Choix ch
 ///-----------------------------------------------------------------------------------------------------------------------------///
 
 int main() {
+    // Allocation dynamique de mémoire pour les noms de fichiers
+    char* filenameExclusions = malloc(sizeof(char));
+    char* filenamePrecedences = malloc(sizeof(char));
+    char* filenameOperations = malloc(sizeof(char));
+    char* filenameTempsCycle = malloc(sizeof(char));
 
-    char filenameExclusions[MAX_FILENAME_LENGTH];
-    char filenamePrecedences[MAX_FILENAME_LENGTH];
-    char filenameOperations[MAX_FILENAME_LENGTH];
-    char filenameTempsCycle[MAX_FILENAME_LENGTH];
+    char txt[] = ".txt";  // Extension des fichiers
+
     FILE* fichierExclusions;
     FILE* fichierPrecedences;
     FILE* fichierOperations;
@@ -456,27 +459,43 @@ int main() {
     do {
         printf("Entrez le nom du fichier d'exclusions :");
         scanf("%s", filenameExclusions);
+
+        // Ajouter l'extension ".txt"
+        strcat(filenameExclusions, txt);
+
         fichierExclusions = fopen(filenameExclusions, "r");
     } while (fichierExclusions == NULL);
 
     do {
         printf("\nEntrez le nom du fichier de precedences :");
         scanf("%s", filenamePrecedences);
+
+        // Ajouter l'extension ".txt"
+        strcat(filenamePrecedences, txt);
+
         fichierPrecedences = fopen(filenamePrecedences, "r");
     } while (fichierPrecedences == NULL);
-    
+
     do {
         printf("\nEntrez le nom du fichier d'operation :");
         scanf("%s", filenameOperations);
+
+        // Ajouter l'extension ".txt"
+        strcat(filenameOperations, txt);
+
         fichierOperations = fopen(filenameOperations, "r");
     } while (fichierOperations == NULL);
 
     do {
         printf("\nEntrez le nom du fichier de temps de cycle :");
         scanf("%s", filenameTempsCycle);
+
+        // Ajouter l'extension ".txt"
+        strcat(filenameTempsCycle, txt);
+
         fichierTempsCycle = fopen(filenameTempsCycle, "r");
     } while (fichierTempsCycle == NULL);
-    
+
     while (1){
 
         Menu();
@@ -515,4 +534,9 @@ int main() {
         // Libérer la mémoire
         libererMemoir(stations, operations, nombreStations, nombreOperations);
     }
+    // Libérer la mémoire à la fin du programme
+    free(filenameExclusions);
+    free(filenamePrecedences);
+    free(filenameOperations);
+    free(filenameTempsCycle);
 }
