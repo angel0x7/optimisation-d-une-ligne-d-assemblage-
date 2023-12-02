@@ -15,7 +15,7 @@ typedef struct Operation {
     int nombrePrecedences; // Nombre d'éléments dans le tableau des précédences
     float datePlusTot;  // Date au plus tôt
     float datePlusTard; // Date au plus tard
-    int* anterieur;
+    int* anterieur;//
     int nombreAnterieur;
 } Operation;
 
@@ -33,7 +33,7 @@ typedef struct Choix{
 }Choix;
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
-
+// Cette fonction affiche la répartition des opérations dans les stations
 void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
     printf("\n\n--------------------------------------------------------------------------------------\n\n");
 
