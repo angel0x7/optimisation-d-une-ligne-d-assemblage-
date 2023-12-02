@@ -31,6 +31,8 @@ typedef struct Choix{
     char* nom[6];
 }Choix;
 
+///-----------------------------------------------------------------------------------------------------------------------------///
+
 void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
     printf("\n\n--------------------------------------------------------------------------------------\n\n");
 
@@ -47,6 +49,8 @@ void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
     }
     printf("\n--------------------------------------------------------------------------------------\n\n");
 }
+
+///-----------------------------------------------------------------------------------------------------------------------------///
 
 Operation* InitialisationOperation(int nombreOperations){
     // Initialisation des opérations
@@ -128,6 +132,8 @@ Choix InitialisationDUchoix(){
     choix.nom[5] = "contrainte d'exclusion de precedence et de temps de cycle";
     return choix;
 }
+
+///-----------------------------------------------------------------------------------------------------------------------------///
 
 void lireNombreOperations(const char* filename, int* nombreOperations) {
     FILE* fichier = fopen(filename, "r");
@@ -219,8 +225,10 @@ float LectureDesFichiers(Operation* operations){
     return T0;
 }
 
+///-----------------------------------------------------------------------------------------------------------------------------///
+
 // Fonction récursive pour afficher toutes les opérations antérieures
-void AfficherOperationsAnterieur(Operation* operations, int nombreOperations)  {
+void CreationOperationsAnterieur(Operation* operations, int nombreOperations)  {
     for (int i = 1; i < nombreOperations; ++i) {
         for (int j = 1; j < nombreOperations; ++j) {
             int precedente = operations[i].Toutprecedences[j];
@@ -232,7 +240,7 @@ void AfficherOperationsAnterieur(Operation* operations, int nombreOperations)  {
 }
 
 // Fonction récursive pour afficher toutes les opérations précédentes
-void AfficherOperationsPrecedente(Operation* operations, int indiceOperation, int* dejaAffiche, int* Tableu) {
+void CreationOperationsPrecedente(Operation* operations, int indiceOperation, int* dejaAffiche, int* Tableu) {
     if (!dejaAffiche[indiceOperation]) {
         dejaAffiche[indiceOperation] = 1;
         Tableu[indiceOperation] = operations[indiceOperation].numero;
@@ -240,7 +248,7 @@ void AfficherOperationsPrecedente(Operation* operations, int indiceOperation, in
         // Afficher les opérations antérieures
         for (int i = 0; i < operations[indiceOperation].nombrePrecedences; ++i) {
             int precedente = operations[indiceOperation].precedences[i];
-            AfficherOperationsPrecedente(operations, precedente, dejaAffiche, Tableu);
+            CreationOperationsPrecedente(operations, precedente, dejaAffiche, Tableu);
         }
     }
 }
@@ -267,7 +275,7 @@ void CalculerDatesPERT(Operation* operations, int nombreOperations) {
                 dejaAffichePrecedences[k] = 0;
             }
 
-            AfficherOperationsPrecedente(operations, precedente, dejaAffichePrecedences, operations[i].Toutprecedences);
+            CreationOperationsPrecedente(operations, precedente, dejaAffichePrecedences, operations[i].Toutprecedences);
 
             if (operations[precedente].datePlusTard + operations[precedente].tempsExecution > datePlusTot) {
                 datePlusTot = operations[precedente].datePlusTard + operations[precedente].tempsExecution;
@@ -309,6 +317,8 @@ void trierOperationsDansStations(Station* stations, int nombreStations) {
     }
 }
 
+///-----------------------------------------------------------------------------------------------------------------------------///
+
 void Menu(){
     printf("\n----------------------------Choissisez les contraintes que vous voulez----------------------------------\n");
     printf("|                   1- Contrainte d'exclusion seul                                                     |\n");
@@ -319,6 +329,8 @@ void Menu(){
     printf("|                   6- Quitter                                                                         |\n");
     printf("--------------------------------------------------------------------------------------------------------\n");
 }
+
+///-----------------------------------------------------------------------------------------------------------------------------///
 
 // Libérer la mémoire
 void libererMemoir(Station* stations, Operation* operations, int nombreStations, int nombreOperations){
@@ -339,6 +351,95 @@ void libererMemoir(Station* stations, Operation* operations, int nombreStations,
     free(stations);
 
 }
+
+///-----------------------------------------------------------------------------------------------------------------------------///
+
+int ContrainteExclusion(Station* stations, Operation* operations, int indiceJ, int IndiceI){
+    // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
+    for (int k = 0; k < stations[indiceJ].nombreOperations; ++k) {
+        int opExistante = stations[indiceJ].operations[k].numero;
+
+        // Vérifier si l'opération en cours est exclue de l'opération existante
+        for (int l = 0; l < operations[IndiceI].nombreExclusions; ++l) {
+            if (opExistante == operations[IndiceI].exclusion[l]) {
+                return 0;
+            }
+        }
+    }
+    return 1;
+}
+
+int AjoutOperationDansStation(Station* stations, Operation* operations, int indiceJ, int IndiceI){
+    stations[indiceJ].operations = realloc(stations[indiceJ].operations, (stations[indiceJ].nombreOperations + 1) * sizeof(Operation));
+    stations[indiceJ].operations[stations[indiceJ].nombreOperations] = operations[IndiceI];
+    stations[indiceJ].nombreOperations++;
+    stations[indiceJ].tempsTotal += operations[IndiceI].tempsExecution;
+    operations[IndiceI].station = stations[indiceJ].numero;
+    return 1;
+}
+
+int RepartitionsDesOperations(Station* stations, Operation* operations, Choix choix, int nombreOperations, int nombreStations){
+    for (int i = 1; i < nombreOperations; ++i) {
+        if(operations[i].nombreAnterieur != 0 || operations[i].nombrePrecedences != 0 || operations[i].nombreExclusions != 0){
+
+            int placeTrouvee = 0;
+            int toutesAnterieuresUtilisees = 0;  // Suppose que toutes les antérieures sont utilisées
+
+            // Parcourir les stations existantes pour trouver une station disponible
+            for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
+
+                int Exclue = ContrainteExclusion(stations, operations, j, i);
+
+                // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
+
+                for (int k = 0; k < operations[i].nombreAnterieur; ++k) {
+                    int anterieureATrouver = operations[i].anterieur[k];
+                    // Vérifier si l'opération antérieure est déjà dans une autre station
+                    for (int m = 0; m < stations[j].nombreOperations; ++m) {
+                        if (stations[j].operations[m].numero == anterieureATrouver) {
+                            toutesAnterieuresUtilisees += 1;
+                        }
+                    }
+                }
+
+                if (choix.numero == 1){
+                    if (Exclue) {
+                        placeTrouvee = AjoutOperationDansStation(stations, operations, j, i);
+                    }
+                } else if (choix.numero == 2){
+                    if (toutesAnterieuresUtilisees == operations[i].nombreAnterieur && (stations[j].tempsTotal + operations[i].tempsExecution) < stations[j].tempsCycle) {
+                        placeTrouvee = AjoutOperationDansStation(stations, operations, j, i);
+
+                    }
+                } else if (choix.numero == 3){
+                    if (Exclue && toutesAnterieuresUtilisees == operations[i].nombreAnterieur) {
+                        placeTrouvee = AjoutOperationDansStation(stations, operations, j, i);
+                    }
+                } else if (choix.numero == 4){
+                    if (Exclue && (stations[j].tempsTotal + operations[i].tempsExecution) < stations[j].tempsCycle) {
+                        placeTrouvee = AjoutOperationDansStation(stations, operations, j, i);
+                    }
+                } else if (choix.numero == 5){
+                    if (Exclue && toutesAnterieuresUtilisees == operations[i].nombreAnterieur && (stations[j].tempsTotal + operations[i].tempsExecution) < stations[j].tempsCycle){
+                        placeTrouvee = AjoutOperationDansStation(stations, operations, j, i);
+                    }
+                }
+            }
+
+            // Si aucune station n'est compatible, créer une nouvelle station
+            if (!placeTrouvee) {
+                stations[nombreStations].numero = nombreStations + 1;
+                stations[nombreStations].operations[0] = operations[i];
+                stations[nombreStations].tempsTotal = operations[i].tempsExecution;
+                operations[i].station = stations[nombreStations].numero;
+                nombreStations++;
+            }
+        }
+    }
+    return nombreStations;
+}
+
+///-----------------------------------------------------------------------------------------------------------------------------///
 
 int main() {
     while (1){
@@ -364,7 +465,7 @@ int main() {
         // Calcul des dates au plus tôt et au plus tard
         CalculerDatesPERT(operations, nombreOperations);
 
-        AfficherOperationsAnterieur(operations, nombreOperations);
+        CreationOperationsAnterieur(operations, nombreOperations);
 
         // Tri des opérations par ordre croissant du nombre d'antérieurs
         trierParAnterieur(operations, nombreOperations);
@@ -373,99 +474,7 @@ int main() {
         int nombreStations = 0;
 
         // Répartition des opérations dans les stations en respectant les contraintes d'exclusion, de précédence et de temps de cycle
-        for (int i = 1; i < nombreOperations; ++i) {
-            if(operations[i].nombreAnterieur != 0 || operations[i].nombrePrecedences != 0 || operations[i].nombreExclusions != 0){
-
-                int placeTrouvee = 0;
-                int toutesAnterieuresUtilisees = 0;  // Suppose que toutes les antérieures sont utilisées
-
-                // Parcourir les stations existantes pour trouver une station disponible
-                for (int j = 0; j < nombreStations && !placeTrouvee; ++j) {
-
-                    int Exclue = 1; // Suppose que l'opération n'est pas exclue
-                    // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
-                    for (int k = 0; k < stations[j].nombreOperations && Exclue; ++k) {
-                        int opExistante = stations[j].operations[k].numero;
-
-                        // Vérifier si l'opération en cours est exclue de l'opération existante
-                        for (int l = 0; l < operations[i].nombreExclusions; ++l) {
-                            if (opExistante == operations[i].exclusion[l]) {
-                                Exclue = 0;
-                                break;
-                            }
-                        }
-                    }
-
-                    // Vérifier si toutes les antérieures ont été utilisées dans l'ensemble des stations
-
-                    for (int k = 0; k < operations[i].nombreAnterieur; ++k) {
-                        int anterieureATrouver = operations[i].anterieur[k];
-                        // Vérifier si l'opération antérieure est déjà dans une autre station
-                        for (int m = 0; m < stations[j].nombreOperations; ++m) {
-                            if (stations[j].operations[m].numero == anterieureATrouver) {
-                                toutesAnterieuresUtilisees += 1;
-                            }
-                        }
-                    }
-
-                    if (choix.numero == 1){
-                        if (Exclue) {
-                            stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
-                            stations[j].operations[stations[j].nombreOperations] = operations[i];
-                            stations[j].nombreOperations++;
-                            //stations[j].tempsTotal += operations[i].tempsExecution;
-                            operations[i].station = stations[j].numero;
-                            placeTrouvee = 1;
-                        }
-                    } else if (choix.numero == 2){
-                        if (toutesAnterieuresUtilisees == operations[i].nombreAnterieur && (stations[j].tempsTotal + operations[i].tempsExecution) < stations[j].tempsCycle) {
-                            stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
-                            stations[j].operations[stations[j].nombreOperations] = operations[i];
-                            stations[j].nombreOperations++;
-                            stations[j].tempsTotal += operations[i].tempsExecution;
-                            operations[i].station = stations[j].numero;
-                            placeTrouvee = 1;
-                        }
-                    } else if (choix.numero == 3){
-                        if (Exclue && toutesAnterieuresUtilisees == operations[i].nombreAnterieur) {
-                            stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
-                            stations[j].operations[stations[j].nombreOperations] = operations[i];
-                            stations[j].nombreOperations++;
-                            //stations[j].tempsTotal += operations[i].tempsExecution;
-                            operations[i].station = stations[j].numero;
-                            placeTrouvee = 1;
-                        }
-                    } else if (choix.numero == 4){
-                        if (Exclue && (stations[j].tempsTotal + operations[i].tempsExecution) < stations[j].tempsCycle) {
-                            stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
-                            stations[j].operations[stations[j].nombreOperations] = operations[i];
-                            stations[j].nombreOperations++;
-                            stations[j].tempsTotal += operations[i].tempsExecution;
-                            operations[i].station = stations[j].numero;
-                            placeTrouvee = 1;
-                        }
-                    } else if (choix.numero == 5){
-                        if (Exclue && toutesAnterieuresUtilisees == operations[i].nombreAnterieur && (stations[j].tempsTotal + operations[i].tempsExecution) < stations[j].tempsCycle){
-                            stations[j].operations = realloc(stations[j].operations, (stations[j].nombreOperations + 1) * sizeof(Operation));
-                            stations[j].operations[stations[j].nombreOperations] = operations[i];
-                            stations[j].nombreOperations++;
-                            stations[j].tempsTotal += operations[i].tempsExecution;
-                            operations[i].station = stations[j].numero;
-                            placeTrouvee = 1;
-                        }
-                    }
-                }
-
-                // Si aucune station n'est compatible, créer une nouvelle station
-                if (!placeTrouvee) {
-                    stations[nombreStations].numero = nombreStations + 1;
-                    stations[nombreStations].operations[0] = operations[i];
-                    stations[nombreStations].tempsTotal = operations[i].tempsExecution;
-                    operations[i].station = stations[nombreStations].numero;
-                    nombreStations++;
-                }
-            }
-        }
+        nombreStations = RepartitionsDesOperations(stations, operations, choix, nombreOperations, nombreStations);
 
         // Triez les opérations à l'intérieur de chaque station
         trierOperationsDansStations(stations, nombreStations);
@@ -476,5 +485,4 @@ int main() {
         // Libérer la mémoire
         libererMemoir(stations, operations, nombreStations, nombreOperations);
     }
-
 }
