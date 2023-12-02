@@ -3,4 +3,4 @@ project(ProjetING2 C)
 
 set(CMAKE_C_STANDARD 99)
 
-add_executable(ProjetING2 main.c)
+add_executable(ProjetING2 main.c Ecelecar.c Ecelecar.h)
