@@ -159,6 +159,41 @@ void lireNombreOperations(const char* filename, int* nombreOperations) {
     fclose(fichier);
 }
 
+// Lecture des exclusions à partir du fichier
+void LectureFichierExclusion(Operation* operations, FILE* fichierExclusions){
+    int op1, op2;
+    while (fscanf(fichierExclusions, "%d %d", &op1, &op2) != EOF) {
+        operations[op1].exclusion[operations[op1].nombreExclusions++] = op2;
+        operations[op2].exclusion[operations[op2].nombreExclusions++] = op1;
+    }
+}
+
+// Lecture des précédences à partir du fichier
+void LectureFichierPrecedence(Operation* operations, FILE* fichierPrecedences){
+    int op1, op2;
+    while (fscanf(fichierPrecedences, "%d %d", &op1, &op2) != EOF) {
+        operations[op1].precedences[operations[op1].nombrePrecedences++] = op2;
+    }
+}
+
+void LectureFichierTimeOperation(Operation* operations, FILE* fichierOperations){
+    float Optime;
+    int op1;
+    while (fscanf(fichierOperations, "%d %f", &op1, &Optime) != EOF) {
+        operations[op1].tempsExecution = Optime;
+    }
+}
+
+// Contrainte de temps de cycle
+float LectureFichierTempsCycle(FILE* fichierTempsCycle){
+    float T0; // Temps de cycle
+    if (fscanf(fichierTempsCycle, "%f", &T0) != 1) {
+        printf("Erreur lors de la lecture du temps de cycle\n");
+        exit(1);
+    }
+    return T0;
+}
+
 float LectureDesFichiers(Operation* operations){
 
     char filenameExclusions[MAX_FILENAME_LENGTH];
@@ -192,30 +227,10 @@ float LectureDesFichiers(Operation* operations){
         exit(1);
     }
 
-    // Lecture des exclusions à partir du fichier
-    int op1, op2;
-    while (fscanf(fichierExclusions, "%d %d", &op1, &op2) != EOF) {
-        operations[op1].exclusion[operations[op1].nombreExclusions++] = op2;
-        operations[op2].exclusion[operations[op2].nombreExclusions++] = op1;
-    }
-
-    // Lecture des précédences à partir du fichier
-    while (fscanf(fichierPrecedences, "%d %d", &op1, &op2) != EOF) {
-        operations[op1].precedences[operations[op1].nombrePrecedences++] = op2;
-    }
-
-    float Optime;
-    while (fscanf(fichierOperations, "%d %f", &op1, &Optime) != EOF) {
-        operations[op1].tempsExecution = Optime;
-    }
-
-    // Contrainte de temps de cycle
-    float T0; // Temps de cycle
-    if (fscanf(fichierTempsCycle, "%f", &T0) != 1) {
-        printf("Erreur lors de la lecture du temps de cycle\n");
-        exit(1);
-    }
-
+    LectureFichierExclusion(operations, fichierExclusions);
+    LectureFichierPrecedence(operations, fichierPrecedences);
+    LectureFichierTimeOperation(operations, fichierOperations);
+    float T0 = LectureFichierTempsCycle(fichierTempsCycle);
 
     fclose(fichierExclusions);
     fclose(fichierPrecedences);
@@ -330,6 +345,15 @@ void Menu(){
     printf("--------------------------------------------------------------------------------------------------------\n");
 }
 
+void FaireSonChoix(Choix* choix){
+    do {
+        scanf("%d", &choix->numero);
+    } while (choix->numero < 1 || choix->numero > 6);
+    if(choix->numero == 6){
+        exit(1);
+    }
+}
+
 ///-----------------------------------------------------------------------------------------------------------------------------///
 
 // Libérer la mémoire
@@ -349,7 +373,6 @@ void libererMemoir(Station* stations, Operation* operations, int nombreStations,
         free(stations[i].operations);
     }
     free(stations);
-
 }
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
@@ -446,12 +469,7 @@ int main() {
 
         Menu();
         Choix choix = InitialisationDUchoix();
-        do {
-            scanf("%d", &choix.numero);
-        } while (choix.numero < 1 || choix.numero > 6);
-        if(choix.numero == 6){
-            exit(1);
-        }
+        FaireSonChoix(&choix);
 
         // Lire le nombre d'opérations depuis les fichiers
         int nombreOperations = 0;
