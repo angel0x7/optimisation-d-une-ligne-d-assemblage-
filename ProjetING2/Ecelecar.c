@@ -2,7 +2,7 @@
 // Created by gregm on 02/12/2023.
 //
 #include "Ecelecar.h"
-
+// Fonction pour afficher la répartition des opérations dans les stations en fonction des critères choisis
 void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
     printf("\n\n--------------------------------------------------------------------------------------\n\n");
 
@@ -21,7 +21,7 @@ void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
 }
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
-
+// Fonction pour initialiser les opérations avec exclusion, précédence et autres données
 Operation* InitialisationOperation(int nombreOperations){
     // Initialisation des opérations
     Operation* operations = malloc(nombreOperations * sizeof(Operation));
@@ -57,6 +57,7 @@ Operation* InitialisationOperation(int nombreOperations){
             printf("Erreur lors de l'allocation de l'exclusion de l'operation %d\n", i);
             exit(1);
         }
+        // Initialisation du nombre de précédences
         operations[i].nombrePrecedences = 0; // Initialisation du nombre de précédences
         operations[i].datePlusTot = 0;
         operations[i].datePlusTard = 0;
