@@ -18,6 +18,7 @@ void Menu(){
 // Fonction pour permettre à l'utilisateur de faire un choix
 void FaireSonChoix(Choix* choix){
     do {
+        printf("Entrer le numero correspondant a votre choix:");
         scanf("%d", &choix->numero);
     } while (choix->numero < 1 || choix->numero > 6);
     if(choix->numero == 6){
