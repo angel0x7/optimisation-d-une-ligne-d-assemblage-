@@ -23,6 +23,7 @@ typedef struct Operation {
     int* anterieur;
     int nombreAnterieur;
 } Operation;
+
 typedef struct Station {
     int numero; // Numéro de la station
     Operation* operations; // Tableau de structure contenant les opérations
@@ -36,26 +37,62 @@ typedef struct Choix{
     char* nom[6];
 }Choix;
 
-void afficherRepartition(Station* stations, int nombreStations, Choix choix);
+///-----------------------------------------------------------------------------------------------------------------------------///
+
+void Menu();
+void FaireSonChoix(Choix* choix);
+
+///-----------------------------------------------------------------------------------------------------------------------------///
+
 Operation* InitialisationOperation(int nombreOperations);
 Station* InitialisationStation(float T0, int nombreOperations );
 Choix InitialisationDUchoix();
+
+///-----------------------------------------------------------------------------------------------------------------------------///
+
 void lireNombreOperations(const char* filename, int* nombreOperations);
+
+// Lecture des exclusions à partir du fichier
 void LectureFichierExclusion(Operation* operations, FILE* fichierExclusions);
+
+// Lecture des précédences à partir du fichier
 void LectureFichierPrecedence(Operation* operations, FILE* fichierPrecedences);
+
+// Lecture des temps des opérations à partir du fichier
 void LectureFichierTimeOperation(Operation* operations, FILE* fichierOperations);
+
+// Lecture du temps de cycle à partir du fichier
 float LectureFichierTempsCycle(FILE* fichierTempsCycle);
 float LectureDesFichiers(Operation* operations, char* filenameExclusions, char* filenamePrecedences, char* filenameOperations, char* filenameTempsCycle);
+
+///-----------------------------------------------------------------------------------------------------------------------------///
+
+// Fonction récursive pour afficher toutes les opérations antérieures
 void CreationOperationsAnterieur(Operation* operations, int nombreOperations);
+// Fonction récursive pour afficher toutes les opérations précédentes
 void CreationOperationsPrecedente(Operation* operations, int indiceOperation, int* dejaAffiche, int* Tableu);
+// Calcul des dates au plus tôt et au plus tard pour chaque opération
 void CalculerDatesPERT(Operation* operations, int nombreOperations);
+// Tri à bulles en fonction du nombre d'antérieurs
 void trierParAnterieur(Operation* operations, int nombreOperations);
+// Tri à bulles dans l'ordre croissant des numéros des opérations pour une meilleur lisibilité
 void trierOperationsDansStations(Station* stations, int nombreStations);
-void Menu();
-void FaireSonChoix(Choix* choix);
-void libererMemoir(Station* stations, Operation* operations, int nombreStations, int nombreOperations);
+
+///-----------------------------------------------------------------------------------------------------------------------------///
+
 int ContrainteExclusion(Station* stations, Operation* operations, int indiceJ, int IndiceI);
 int AjoutOperationDansStation(Station* stations, Operation* operations, int indiceJ, int IndiceI);
 int RepartitionsDesOperations(Station* stations, Operation* operations, Choix choix, int nombreOperations, int nombreStations);
+
+///-----------------------------------------------------------------------------------------------------------------------------///
+
+void afficherRepartition(Station* stations, int nombreStations, Choix choix);
+
+///-----------------------------------------------------------------------------------------------------------------------------///
+
+// Libérer la mémoire
+void libererMemoir(Station* stations, Operation* operations, int nombreStations, int nombreOperations);
+
+///-----------------------------------------------------------------------------------------------------------------------------///
 
 #endif //PROJETING2_ECELECAR_H
