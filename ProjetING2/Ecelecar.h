@@ -79,9 +79,11 @@ void trierParAnterieur(Operation* operations, int nombreOperations);
 void trierOperationsDansStations(Station* stations, int nombreStations);
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
-
+//Cette fonction vérifie si l'ajout d'une opération dans une station respecte les contraintes d'exclusion
 int ContrainteExclusion(Station* stations, Operation* operations, int indiceJ, int IndiceI);
+//Cette fonction ajoute une opération à une station
 int AjoutOperationDansStation(Station* stations, Operation* operations, int indiceJ, int IndiceI);
+//Cette fonction est responsable de l'ensemble de la tâche d'affectation des opérations aux stations
 int RepartitionsDesOperations(Station* stations, Operation* operations, Choix choix, int nombreOperations, int nombreStations);
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
