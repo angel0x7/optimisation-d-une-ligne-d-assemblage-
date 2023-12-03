@@ -26,7 +26,7 @@ void FaireSonChoix(Choix* choix){
 }
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
-
+// Initialisation des opérations avec des contraintes
 Operation* InitialisationOperation(int nombreOperations){
     // Initialisation des opérations
     Operation* operations = malloc(nombreOperations * sizeof(Operation));
@@ -83,7 +83,7 @@ Operation* InitialisationOperation(int nombreOperations){
     }
     return operations;
 }
-
+// Initialisation des stations avec un temps de cycle initial
 Station* InitialisationStation(float T0, int nombreOperations ){
     Station* stations = malloc(nombreOperations * sizeof(Station));
 
@@ -96,7 +96,7 @@ Station* InitialisationStation(float T0, int nombreOperations ){
     }
     return stations;
 }
-
+// Initialisation du choix pour les contraintes
 Choix InitialisationDUchoix(){
     Choix choix;
     choix.numero = 0;
@@ -110,7 +110,7 @@ Choix InitialisationDUchoix(){
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
 
-
+// Lecture du nombre d'opérations à partir d'un fichier
 void lireNombreOperations(const char* filename, int* nombreOperations) {
     FILE* fichier = fopen(filename, "r");
 
@@ -150,7 +150,7 @@ void LectureFichierPrecedence(Operation* operations, FILE* fichierPrecedences){
         operations[op1].precedences[operations[op1].nombrePrecedences++] = op2;
     }
 }
-
+// Lecture des temps d'exécution des opérations à partir d'un fichier
 void LectureFichierTimeOperation(Operation* operations, FILE* fichierOperations){
     float Optime;
     int op1;
@@ -159,7 +159,7 @@ void LectureFichierTimeOperation(Operation* operations, FILE* fichierOperations)
     }
 }
 
-// Contrainte de temps de cycle
+// Lecture des contrainte de temps de cycle
 float LectureFichierTempsCycle(FILE* fichierTempsCycle){
     float T0; // Temps de cycle
     if (fscanf(fichierTempsCycle, "%f", &T0) != 1) {
@@ -168,7 +168,7 @@ float LectureFichierTempsCycle(FILE* fichierTempsCycle){
     }
     return T0;
 }
-
+// Lecture de toutes les informations à partir des fichiers
 float LectureDesFichiers(Operation* operations, char* filenameExclusions, char* filenamePrecedences, char* filenameOperations, char* filenameTempsCycle){
 
     FILE* fichierExclusions = fopen(filenameExclusions, "r");
@@ -286,7 +286,7 @@ void trierOperationsDansStations(Station* stations, int nombreStations) {
 }
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
-
+// Vérification des contraintes d'exclusion pour une opération donnée dans une station
 int ContrainteExclusion(Station* stations, Operation* operations, int indiceJ, int IndiceI){
     // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
     for (int k = 0; k < stations[indiceJ].nombreOperations; ++k) {
@@ -301,7 +301,7 @@ int ContrainteExclusion(Station* stations, Operation* operations, int indiceJ, i
     }
     return 1;
 }
-
+// Ajout d'une opération dans une station
 int AjoutOperationDansStation(Station* stations, Operation* operations, int indiceJ, int IndiceI){
     stations[indiceJ].operations = realloc(stations[indiceJ].operations, (stations[indiceJ].nombreOperations + 1) * sizeof(Operation));
     stations[indiceJ].operations[stations[indiceJ].nombreOperations] = operations[IndiceI];
@@ -310,7 +310,7 @@ int AjoutOperationDansStation(Station* stations, Operation* operations, int indi
     operations[IndiceI].station = stations[indiceJ].numero;
     return 1;
 }
-
+// Répartition des opérations dans les stations en fonction des contraintes choisies
 int RepartitionsDesOperations(Station* stations, Operation* operations, Choix choix, int nombreOperations, int nombreStations){
     for (int i = 1; i < nombreOperations; ++i) {
         if(operations[i].nombreAnterieur != 0 || operations[i].nombrePrecedences != 0 || operations[i].nombreExclusions != 0){
@@ -373,7 +373,7 @@ int RepartitionsDesOperations(Station* stations, Operation* operations, Choix ch
 }
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
-
+// Affichage de la répartition des opérations dans les stations
 void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
     printf("\n\n--------------------------------------------------------------------------------------\n\n");
 
@@ -393,7 +393,7 @@ void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
 
-// Libérer la mémoire
+// Libération de la mémoire allouée
 void libererMemoir(Station* stations, Operation* operations, int nombreStations, int nombreOperations){
 
     // Libérer la mémoire des opérations
