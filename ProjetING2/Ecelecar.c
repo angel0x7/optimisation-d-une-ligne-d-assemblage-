@@ -1,9 +1,6 @@
 //
 // Created by gregm on 02/12/2023.
 //
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "Ecelecar.h"
 
 void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
