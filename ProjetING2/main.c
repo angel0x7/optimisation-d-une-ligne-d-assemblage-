@@ -1,8 +1,5 @@
 #include "Ecelecar.h"
 
-#define MAX_FILENAME_LENGTH 100
-
-
 int main() {
     // Allocation dynamique de mémoire pour les noms de fichiers
     char* filenameExclusions = malloc(sizeof(char));
