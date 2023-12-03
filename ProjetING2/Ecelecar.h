@@ -20,8 +20,8 @@ typedef struct Operation {
     int nombrePrecedences; // Nombre d'éléments dans le tableau des précédences
     float datePlusTot;  // Date au plus tôt
     float datePlusTard; // Date au plus tard
-    int* anterieur;
-    int nombreAnterieur;
+    int* anterieur;//
+    int nombreAnterieur;//
 } Operation;
 
 typedef struct Station {
