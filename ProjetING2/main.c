@@ -1,6 +1,3 @@
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
 #include "Ecelecar.h"
 
 #define MAX_FILENAME_LENGTH 100
