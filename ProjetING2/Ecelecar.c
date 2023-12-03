@@ -2,26 +2,31 @@
 // Created by gregm on 02/12/2023.
 //
 #include "Ecelecar.h"
-// Fonction pour afficher la répartition des opérations dans les stations en fonction des critères choisis
-void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
-    printf("\n\n--------------------------------------------------------------------------------------\n\n");
 
-    printf("Repartition des operations dans les stations en fonction de la %s:\n", choix.nom[choix.numero]);
-    for (int i = 0; i < nombreStations; ++i) {
-        printf("Station %d :", stations[i].numero);
-        for (int j = 0; j < stations[i].nombreOperations; ++j) {
-            printf(" %d", stations[i].operations[j].numero);
-        }
-        if ((choix.numero != 1) && (choix.numero != 3)){
-            printf(" -- temps de cycle: %f", stations[i].tempsTotal);
-        }
-        printf("\n");
+///-----------------------------------------------------------------------------------------------------------------------------///
+
+void Menu(){
+    printf("\n----------------------------Choissisez les contraintes que vous voulez----------------------------------\n");
+    printf("|                   1- Contrainte d'exclusion seul                                                     |\n");
+    printf("|                   2- Contrainte de precedence et de temps de cycle                                   |\n");
+    printf("|                   3- Contrainte d'exclusion et de precedence                                         |\n");
+    printf("|                   4- Contrainte d'exclusion et temps de cycle                                        |\n");
+    printf("|                   5- Contrainte d'exclusion de precedence et de temps de cycle                       |\n");
+    printf("|                   6- Quitter                                                                         |\n");
+    printf("--------------------------------------------------------------------------------------------------------\n");
+}
+
+void FaireSonChoix(Choix* choix){
+    do {
+        scanf("%d", &choix->numero);
+    } while (choix->numero < 1 || choix->numero > 6);
+    if(choix->numero == 6){
+        exit(1);
     }
-    printf("\n--------------------------------------------------------------------------------------\n\n");
 }
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
-// Fonction pour initialiser les opérations avec exclusion, précédence et autres données
+
 Operation* InitialisationOperation(int nombreOperations){
     // Initialisation des opérations
     Operation* operations = malloc(nombreOperations * sizeof(Operation));
@@ -57,7 +62,6 @@ Operation* InitialisationOperation(int nombreOperations){
             printf("Erreur lors de l'allocation de l'exclusion de l'operation %d\n", i);
             exit(1);
         }
-        // Initialisation du nombre de précédences
         operations[i].nombrePrecedences = 0; // Initialisation du nombre de précédences
         operations[i].datePlusTot = 0;
         operations[i].datePlusTard = 0;
@@ -79,8 +83,6 @@ Operation* InitialisationOperation(int nombreOperations){
     }
     return operations;
 }
-
-///-----------------------------------------------------------------------------------------------------------------------------///
 
 Station* InitialisationStation(float T0, int nombreOperations ){
     Station* stations = malloc(nombreOperations * sizeof(Station));
@@ -285,49 +287,6 @@ void trierOperationsDansStations(Station* stations, int nombreStations) {
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
 
-void Menu(){
-    printf("\n----------------------------Choissisez les contraintes que vous voulez----------------------------------\n");
-    printf("|                   1- Contrainte d'exclusion seul                                                     |\n");
-    printf("|                   2- Contrainte de precedence et de temps de cycle                                   |\n");
-    printf("|                   3- Contrainte d'exclusion et de precedence                                         |\n");
-    printf("|                   4- Contrainte d'exclusion et temps de cycle                                        |\n");
-    printf("|                   5- Contrainte d'exclusion de precedence et de temps de cycle                       |\n");
-    printf("|                   6- Quitter                                                                         |\n");
-    printf("--------------------------------------------------------------------------------------------------------\n");
-}
-
-void FaireSonChoix(Choix* choix){
-    do {
-        scanf("%d", &choix->numero);
-    } while (choix->numero < 1 || choix->numero > 6);
-    if(choix->numero == 6){
-        exit(1);
-    }
-}
-
-///-----------------------------------------------------------------------------------------------------------------------------///
-
-// Libérer la mémoire
-void libererMemoir(Station* stations, Operation* operations, int nombreStations, int nombreOperations){
-
-    // Libérer la mémoire des opérations
-    for (int i = 1; i < nombreOperations; ++i) {
-        free(operations[i].exclusion);
-        free(operations[i].precedences);
-        free(operations[i].anterieur); // Libére la mémoire des antérieurs
-        free(operations[i].Toutprecedences); // Libére la mémoire de Toutprecedences
-    }
-    free(operations);
-
-    // Libérer la mémoire des stations
-    for (int i = 0; i < nombreStations; ++i) {
-        free(stations[i].operations);
-    }
-    free(stations);
-}
-
-///-----------------------------------------------------------------------------------------------------------------------------///
-
 int ContrainteExclusion(Station* stations, Operation* operations, int indiceJ, int IndiceI){
     // Vérifier les contraintes d'exclusion avec les opérations existantes dans la station
     for (int k = 0; k < stations[indiceJ].nombreOperations; ++k) {
@@ -411,6 +370,46 @@ int RepartitionsDesOperations(Station* stations, Operation* operations, Choix ch
         }
     }
     return nombreStations;
+}
+
+///-----------------------------------------------------------------------------------------------------------------------------///
+
+void afficherRepartition(Station* stations, int nombreStations, Choix choix) {
+    printf("\n\n--------------------------------------------------------------------------------------\n\n");
+
+    printf("Repartition des operations dans les stations en fonction de la %s:\n", choix.nom[choix.numero]);
+    for (int i = 0; i < nombreStations; ++i) {
+        printf("Station %d :", stations[i].numero);
+        for (int j = 0; j < stations[i].nombreOperations; ++j) {
+            printf(" %d", stations[i].operations[j].numero);
+        }
+        if ((choix.numero != 1) && (choix.numero != 3)){
+            printf(" -- temps de cycle: %f", stations[i].tempsTotal);
+        }
+        printf("\n");
+    }
+    printf("\n--------------------------------------------------------------------------------------\n\n");
+}
+
+///-----------------------------------------------------------------------------------------------------------------------------///
+
+// Libérer la mémoire
+void libererMemoir(Station* stations, Operation* operations, int nombreStations, int nombreOperations){
+
+    // Libérer la mémoire des opérations
+    for (int i = 1; i < nombreOperations; ++i) {
+        free(operations[i].exclusion);
+        free(operations[i].precedences);
+        free(operations[i].anterieur); // Libére la mémoire des antérieurs
+        free(operations[i].Toutprecedences); // Libére la mémoire de Toutprecedences
+    }
+    free(operations);
+
+    // Libérer la mémoire des stations
+    for (int i = 0; i < nombreStations; ++i) {
+        free(stations[i].operations);
+    }
+    free(stations);
 }
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
