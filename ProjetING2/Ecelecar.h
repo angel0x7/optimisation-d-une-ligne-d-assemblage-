@@ -4,6 +4,11 @@
 
 #ifndef PROJETING2_ECELECAR_H
 #define PROJETING2_ECELECAR_H
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
 typedef struct Operation {
     int numero; // Numéro de l'opération
     float tempsExecution; // Temps que mets l'opération à s'éffectuer
