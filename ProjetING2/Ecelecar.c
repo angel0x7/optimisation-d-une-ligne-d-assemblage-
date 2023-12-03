@@ -4,7 +4,7 @@
 #include "Ecelecar.h"
 
 ///-----------------------------------------------------------------------------------------------------------------------------///
-
+// Fonction de menu pour afficher les options disponibles
 void Menu(){
     printf("\n----------------------------Choissisez les contraintes que vous voulez----------------------------------\n");
     printf("|                   1- Contrainte d'exclusion seul                                                     |\n");
@@ -15,7 +15,7 @@ void Menu(){
     printf("|                   6- Quitter                                                                         |\n");
     printf("--------------------------------------------------------------------------------------------------------\n");
 }
-
+// Fonction pour permettre à l'utilisateur de faire un choix
 void FaireSonChoix(Choix* choix){
     do {
         scanf("%d", &choix->numero);
